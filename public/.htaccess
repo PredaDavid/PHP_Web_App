@@ -1,0 +1,13 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Redirect all requests to the index.php file inside the public folder
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^(.*)$ index.php [L]
+
+    # Redirect all requests to folders to index.php
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^(.*)/$ index.php [L]
+
+</IfModule>

@@ -1,0 +1,9 @@
+# Ignore all file with .db extension
+*.db
+
+test.php
+
+test/
+Test/
+
+reference_images/

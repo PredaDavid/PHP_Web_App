@@ -1,0 +1,188 @@
+-- Wedding Decoration Company
+
+-- For SQLite
+
+CREATE TABLE user (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    phone_number TEXT,
+    admin BOOLEAN DEFAULT FALSE,
+    status BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE worker (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    supervisor BOOLEAN DEFAULT FALSE,
+    can_drive BOOLEAN DEFAULT FALSE,
+    special_effects_license BOOLEAN DEFAULT FALSE,
+    status BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (user_id) REFERENCES user(id)
+);
+
+CREATE TABLE unavailable_worker_dates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    worker_id INTEGER,
+    date DATE NOT NULL,
+    reason TEXT,
+    validated_by_id INTEGER,
+    FOREIGN KEY (worker_id) REFERENCES worker(id),
+    FOREIGN KEY (validated_by_id) REFERENCES worker(id)
+);
+
+CREATE TABLE item_type (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    original_barcode TEXT,
+    name TEXT,
+    description TEXT,
+    rental_price REAL,
+    replacement_price REAL,
+    image_name TEXT,
+    need_cleaning_after_use BOOLEAN DEFAULT FALSE,
+    one_time_use BOOLEAN DEFAULT FALSE,
+    status BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE storage_unit (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    address TEXT,
+    status BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE item (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_type_id INTEGER,
+    storage_unit_id INTEGER,
+    observation TEXT,
+    need_cleaning BOOLEAN DEFAULT FALSE,
+    reason_for_damage TEXT,
+    status BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (item_type_id) REFERENCES item_type(id),
+    FOREIGN KEY (storage_unit_id) REFERENCES storage_unit(id)
+);
+
+CREATE TABLE service (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    description TEXT,
+    price REAL,
+    requires_special_effects_license BOOLEAN DEFAULT FALSE,
+    image_name TEXT,
+    status BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE required_items_for_service (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    service_id INTEGER,
+    item_type_id INTEGER,
+    quantity INTEGER NOT NULL,
+    FOREIGN KEY (service_id) REFERENCES service(id),
+    FOREIGN KEY (item_type_id) REFERENCES item_type(id)
+);
+
+CREATE TABLE car (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    license_plate TEXT NOT NULL UNIQUE,
+    model TEXT NOT NULL,
+    status BOOLEAN DEFAULT TRUE,
+    rovinieta_expiration_date DATE
+);
+
+CREATE TABLE event (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    location TEXT NOT NULL,
+    observation TEXT,
+    date_and_time DATETIME NOT NULL,
+    status TEXT DEFAULT 'scheduled' CHECK(status IN ('scheduled', 'planned', 'finished'))
+);
+
+CREATE TABLE event_items_order (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER,
+    item_id INTEGER,
+    quantity INTEGER NOT NULL,
+    FOREIGN KEY (event_id) REFERENCES event(id),
+    FOREIGN KEY (item_id) REFERENCES item(id)
+);
+
+CREATE TABLE event_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER,
+    item_id INTEGER,
+    FOREIGN KEY (event_id) REFERENCES event(id),
+    FOREIGN KEY (item_id) REFERENCES item(id)
+);
+
+CREATE TABLE event_services_order (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER,
+    service_id INTEGER,
+    FOREIGN KEY (event_id) REFERENCES event(id),
+    FOREIGN KEY (service_id) REFERENCES service(id)
+);
+
+CREATE TABLE event_workers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER,
+    worker_id INTEGER,
+    required_stay_until_end BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (event_id) REFERENCES event(id),
+    FOREIGN KEY (worker_id) REFERENCES worker(id)
+);
+
+CREATE TABLE event_car (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER,
+    car_id INTEGER,
+    FOREIGN KEY (event_id) REFERENCES event(id),
+    FOREIGN KEY (car_id) REFERENCES car(id)
+);
+
+CREATE TABLE event_invoice (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER,
+    client_info TEXT,
+    paid BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (event_id) REFERENCES event(id)
+);
+
+CREATE TABLE discount_and_extra_fee (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT,
+    percent BOOLEAN DEFAULT FALSE,
+    increase_or_decrease BOOLEAN DEFAULT FALSE,
+    value REAL NOT NULL,
+    status BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE event_extra_fees (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_invoice_id INTEGER,
+    discount_and_extra_fee_id INTEGER,
+    FOREIGN KEY (event_invoice_id) REFERENCES event_invoice(id),
+    FOREIGN KEY (discount_and_extra_fee_id) REFERENCES discount_and_extra_fee(id)
+);
+
+CREATE TABLE event_invoice_for_damages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER,
+    client_info TEXT,
+    paid BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (event_id) REFERENCES event(id)
+);
+
+CREATE TABLE damaged_items_on_event (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_invoice_for_damages_id INTEGER,
+    item_id INTEGER,
+    reason TEXT,
+    price REAL,
+    FOREIGN KEY (event_invoice_for_damages_id) REFERENCES event_invoice_for_damages(id),
+    FOREIGN KEY (item_id) REFERENCES item(id)
+);
