@@ -69,14 +69,7 @@ class UserRegisterModel extends FormModel
     {
 
         $model = new UserModel();
-        $model->loadDataFromArray([
-            'email' => $this->email->value,
-            'password' => password_hash($this->password->value, PASSWORD_DEFAULT),
-            'first_name' => $this->first_name->value,
-            'last_name' => $this->last_name->value,
-            'phone_number' => $this->phone_number->value,
-            'createdAt' => new \DateTime(),
-        ]);
+        $this->sendDataToSqlModel($model);
         $model->save();
     }
 }

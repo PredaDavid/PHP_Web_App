@@ -45,5 +45,15 @@ class UserModel extends SqlModel
         }
     }
 
+    public function save() 
+    {
+        // var_dump($this->worker);
+        // die();
+        if ($this->worker instanceof WorkerModel) {
+            $this->worker->save();
+        }
+        parent::save();
+    }
+
 
 }

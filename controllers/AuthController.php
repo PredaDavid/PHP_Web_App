@@ -27,7 +27,7 @@ class AuthController extends Controller
             return parent::render('login', ['model' => $loginModel]); 
         }
         else { // If the request is a POST request
-            $loginModel->loadData($request->getBody()); // Load data into the model
+            $loginModel->loadDataFromBody($request->getBody()); // Load data into the model
 
             if($loginModel->validate()){ // If the data is valid
                 $user_id = $loginModel->login(); // Try to login
@@ -55,7 +55,7 @@ class AuthController extends Controller
 
         $registerModel = new UserRegisterModel(); // Create a new instance of the model
         if($request->isPost()){ // If the request is a POST request
-            $registerModel->loadData($request->getBody()); // Load data into the model
+            $registerModel->loadDataFromBody($request->getBody()); // Load data into the model
             
             if($registerModel->validate()){ // If the data is valid
                 $registerModel->register(); // Register the user - insert the data into the database

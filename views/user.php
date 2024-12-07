@@ -14,16 +14,7 @@ use core\FormField;
         </div>
         
         <div class="container main_grid_2">
-            <h2>Details</h2>
-            <form action="" method="POST">
-                <?php echo new FormField($model, 'id');?>
-                <?php echo new FormField($model, 'email');?>
-                <?php echo new FormField($model, 'password');?>
-                <?php echo new FormField($model, 'phone_number');?>
-                <?php echo new FormField($model, 'password');?>
-                <?php echo new FormField($model, 'password_confirm');?>
-                <input type="submit" value="Login">
-            </form>
+            <?php $user_form->generateForm(); ?>
         </div>
         
         <div class="container">

@@ -10,18 +10,60 @@ abstract class FormModel
     public const RULE_MAX = '[RULE_MAX] Max length of this field must be {max}.'; // Max length of the field
     public const RULE_MATCH = '[RULE_MATCH] This field must be the same as {match}.'; // Field must be the same as another field
     public const RULE_UNIQUE = '[RULE_UNIQUE] Record with this {field} already exists.'; // Field must be unique in the database
-
     public const RULE_READONLY = '[RULE_READONLY] This field is read only.'; // Field is read only
 
-    protected array $errors = []; // All the errors are stored here
+    protected array $errors = []; 
 
-    public function loadData($data) // Load data from the form
+    public array $fieldsToIgnore = []; 
+
+    public function loadDataFromBody($body) 
     {
-        foreach ($data as $key => $value) {
-            if (property_exists($this, $key)) {
-                if($this->{$key} instanceof FormModelField) {
-                    $this->{$key}->value = $value;
+        // foreach ($body as $key => $value) {
+        //     if (property_exists($this, $key)) {
+        //         if ($this->{$key} instanceof FormModelField) {
+        //             if ($this->{$key}->type === FormModelField::TYPE_CHECKBOX) {
+        //                 $this->{$key}->value = isset($body[$key]);
+        //             } else {
+        //                 $this->{$key}->value = $value;
+        //             }
+        //         }
+        //     }
+        // }
+        $properties = get_object_vars($this);
+        foreach ($properties as $name => $field) {
+            if ($field instanceof FormModelField) {
+                if ($field->type === FormModelField::TYPE_CHECKBOX) {
+                    $field->value = isset($body[$name]);
                 }
+                else if (isset($body[$name])) {
+                    $field->value = $body[$name];
+                }
+            }
+        }
+    }
+
+    public function loadDataFromSqlModel(SqlModel $model) {
+        $attributes = get_object_vars($this);
+        foreach ($attributes as $name => $attributeValue) {
+            if ($attributeValue instanceof FormModelField and isset($model->{$name})) {
+                $this->{$name}->value = $model->{$name};
+            }
+        }
+    }
+
+    public function sendDataToSqlModel(SqlModel $model, array $toIgnore=[]) {
+        $attributes = get_object_vars($this);
+        foreach ($attributes as $name => $field) {
+            if (in_array($name, $toIgnore)) continue; // Skip if the field is in the ignore list
+            if (!isset($model->{$name})) continue; // Skip if the attribute does not exist in the model
+            if ($field->type === FormModelField::TYPE_CHECKBOX) {
+                $model->{$name} = $field->value ? 1 : 0;
+            }
+            else if ($field->type === FormModelField::TYPE_PASSWORD) {
+                $model->{$name} = password_hash($field->value, PASSWORD_DEFAULT);
+            }
+            else {
+                $model->{$name} = $field->value;
             }
         }
     }
@@ -79,19 +121,22 @@ abstract class FormModel
     {
         $attributes = get_object_vars($this);
         echo "<form action='' method='POST'>";
-            foreach ($attributes as $name => $attributeValue) {
-                if ($attributeValue instanceof FormModelField) {
-                    echo $attributeValue;
-                }
+        foreach ($attributes as $name => $attributeValue) {
+            if(in_array($name, $this->fieldsToIgnore)) {
+                continue;
             }
-            echo  "<input type='submit' value='Submit'>";
+            if ($attributeValue instanceof FormModelField) {
+                echo $attributeValue;
+            }
+        }
+        echo  "<input type='submit' value='Submit'>";
         echo "</form>";
     }
 
     public function addError(string $name, string $rule, $params = [])
     {
         $message = $rule;
-        if(Config::HIDE_FORM_FIELD_RULE_DEBUG_TEXT) {
+        if (Config::HIDE_FORM_FIELD_RULE_DEBUG_TEXT) {
             $message = preg_replace('/\[[^\]]*\]/', '', $message);
         }
         foreach ($params as $key => $value) { // replace the placeholder {key} with value
@@ -108,7 +153,4 @@ abstract class FormModel
     {
         return $this->errors[$name][0] ?? false;
     }
-
 }
-
-

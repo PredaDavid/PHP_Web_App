@@ -10,6 +10,7 @@ use core\SqlModel;
 use models\UserRegisterModel;
 use models\UserLoginModel;
 use models\UserModel;
+use models\UserWorkerFormModel;
 
 class UsersController extends Controller
 {
@@ -21,7 +22,26 @@ class UsersController extends Controller
         }
 
         if($request->isPost()) {
+            $user_form = new UserWorkerFormModel();
+            $user_form->loadDataFromBody($request->getBody());
 
+            
+            if($user_form->validate()) {
+                $user = new UserModel();
+
+                $user->loadDataFromDb($user_form->id->value);
+                $user_form->sendDataToSqlModel($user);
+
+                $user->save();
+                Response::redirect('/user?id=' . $user->id);
+            }
+            else {
+                $params = [
+                    'user' => new UserModel(),
+                    'user_form' => $user_form,
+                ];
+                return parent::render('user', $params);
+            }
         }
         else {
             $user = new UserModel();
@@ -42,8 +62,11 @@ class UsersController extends Controller
                 // If the id is not set return the current user
                 $user->loadDataFromDb(Application::current()->user->id);
             }
+            $user_form = new UserWorkerFormModel();
+            $user_form->loadDataFromSqlModel($user);
             $params = [
-                'user' => $user
+                'user' => $user,
+                'user_form' => $user_form,
             ];
             return parent::render('user', $params);
         }

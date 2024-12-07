@@ -19,7 +19,6 @@ abstract class SqlModel
 
     public int $id = SqlModel::INT_DEFAULT_VALUE;
 
-
     public function __construct()
     {
         // Set default values for class attributes
@@ -56,7 +55,7 @@ abstract class SqlModel
         }
     }
 
-    public function loadDataFromArray($data) // Load data from asociative array; Recieve a dictionary and adds it's value to the class attributes 
+    private function loadDataFromArray($data) // Load data from asociative array; Recieve a dictionary and adds it's value to the class attributes 
     {
         foreach ($data as $key => $value) {
             if (property_exists($this, $key)) {
@@ -77,7 +76,7 @@ abstract class SqlModel
         }
     }
 
-    public function loadDataFromDb($_id = "") // This method can be extended
+    public function loadDataFromDb($_id = "") // This method should be extended for every model
     {
         if($_id !== "") 
             $id = $_id;
@@ -88,6 +87,71 @@ abstract class SqlModel
         $stmt->execute();
         $data = $stmt->fetch(\PDO::FETCH_ASSOC);
         $this->loadDataFromArray($data);
+    }
+
+    public function save() 
+    {
+        if ($this->id === self::INT_DEFAULT_VALUE) {
+            $this->insert();
+        } else {
+            $this->update();
+        }
+    }
+
+    public function insert(array $toIgnore = []) 
+    {
+
+        // Get atributes of the class 
+        $data = get_object_vars($this);
+        foreach ($data as $key => $value) {
+            if (in_array($key, $toIgnore)) {
+                unset($data[$key]);
+            }else if(in_array($key, static::EXTRA_ATTRIBUTES)) { // Ignore extra attributes
+                unset($data[$key]);
+            } else if ($value instanceof DateTime) {
+                $data[$key] = $value->format('Y-m-d H:i:s');
+            } else if ($key === 'id') {
+                unset($data[$key]);
+            }
+        }
+
+        $sql = "INSERT INTO " . static::TABLE_NAME . " (";
+
+        $sql .= implode(', ', array_keys($data));
+        $sql .= ") VALUES (";
+        $sql .= implode(', ', array_map(fn($key) => ":$key", array_keys($data)));
+        $sql .= ")";
+        $stmt = Application::current()->db->pdo->prepare($sql);
+        $stmt->execute($data);
+    }
+
+    public function update(array $toIgnore = [])
+    {
+        $data = get_object_vars($this);
+        foreach ($data as $key => $value) {
+            if (in_array($key, $toIgnore)) {
+                unset($data[$key]);
+            }else if(in_array($key, static::EXTRA_ATTRIBUTES)) { // Ignore extra attributes
+                unset($data[$key]);
+            } else if ($value instanceof DateTime) {
+                $data[$key] = $value->format('Y-m-d H:i:s');
+            } 
+        }
+
+        
+        $sql = "UPDATE " . static::TABLE_NAME . " SET ";
+        $sql .= implode(', ', array_map(fn($key) => "$key = :$key", array_keys($data)));
+        $sql .= " WHERE id = :id";
+        $stmt = Application::current()->db->pdo->prepare($sql);
+        $stmt->execute($data);
+    }
+
+    public function delete()
+    {
+        $sql = "DELETE FROM " . static::TABLE_NAME . " WHERE id = :id";
+        $stmt = Application::current()->db->pdo->prepare($sql);
+        $stmt->bindParam(':id', $this->id, \PDO::PARAM_INT);
+        $stmt->execute();
     }
 
     public static function getById(int $id)
@@ -120,62 +184,7 @@ abstract class SqlModel
         return $instances;
     }
 
-    public function save()
-    {
-        if ($this->id === self::INT_DEFAULT_VALUE) {
-            $this->insert();
-        } else {
-            $this->update();
-        }
-    }
-
-    public function insert()
-    {
-
-        // Get atributes of the class 
-        $data = get_object_vars($this);
-        foreach ($data as $key => $value) {
-            if(in_array($key, static::EXTRA_ATTRIBUTES)) { // Ignore extra attributes
-                unset($data[$key]);
-            } else if ($value instanceof DateTime) {
-                $data[$key] = $value->format('Y-m-d H:i:s');
-            } else if ($key === 'TABLE_NAME' or $key === 'id') {
-                unset($data[$key]);
-            }
-        }
-
-
-        $sql = "INSERT INTO " . static::TABLE_NAME . " (";
-
-        $sql .= implode(', ', array_keys($data));
-        $sql .= ") VALUES (";
-        $sql .= implode(', ', array_map(fn($key) => ":$key", array_keys($data)));
-        $sql .= ")";
-        $stmt = Application::current()->db->pdo->prepare($sql);
-        $stmt->execute($data);
-    }
-
-    public function update()
-    {
-        $data = get_object_vars($this);
-        foreach ($data as $key => $value) {
-            if(in_array($key, static::EXTRA_ATTRIBUTES)) { // Ignore extra attributes
-                unset($data[$key]);
-            } else if ($value instanceof DateTime) {
-                $data[$key] = $value->format('Y-m-d H:i:s');
-            } else if ($key === 'TABLE_NAME' or $key === 'id') {
-                unset($data[$key]);
-            }
-        }
-
-        $sql = "UPDATE " . static::TABLE_NAME . " SET ";
-        $sql .= implode(', ', array_map(fn($key) => "$key = :$key", array_keys($data)));
-        $sql .= " WHERE id = :id";
-        $stmt = Application::current()->db->pdo->prepare($sql);
-        $stmt->execute($data);
-    }
-
-    public static function delete(string $id)
+    public static function deleteById(string $id)
     {
         $sql = "DELETE FROM " . static::TABLE_NAME . " WHERE id = :id";
         $stmt = Application::current()->db->pdo->prepare($sql);

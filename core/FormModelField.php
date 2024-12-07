@@ -42,22 +42,44 @@ class FormModelField
             $readonly = 'readonly';
         }
 
-        return sprintf('
-            <div class="form_field_container">
-                <label>%s:</label>
-                <input type="%s" name="%s" value="%s" %s class="form-control%s">
-                <div class="form_field_error">
-                    %s
+        if ($this->type === self::TYPE_CHECKBOX) {
+            $value = $this->value ? 'checked' : '';
+            $text = sprintf('
+                <div class="form_field_container">
+                    <label>%s: </label>
+                    <input type="%s" name="%s" %s %s class="form-control%s">
+                    <div class="form_field_error">
+                        %s
+                    </div>
                 </div>
-            </div>
-        ',
-        $this->label,
-        $this->type,
-        $this->name,
-        $this->value,
-        $readonly,
-        $this->model->hasError($this->name) ? ' is-invalid' : '',
-        $this->model->getFirstError($this->name),
-        );
+            ',
+            $this->label,
+            $this->type,
+            $this->name,
+            $value,
+            $readonly,
+            $this->model->hasError($this->name) ? ' is-invalid' : '',
+            $this->model->getFirstError($this->name),
+            );
+        } else {
+            $text = sprintf('
+                <div class="form_field_container">
+                    <label>%s:</label>
+                    <input type="%s" name="%s" value="%s" %s class="form-control%s">
+                    <div class="form_field_error">
+                        %s
+                    </div>
+                </div>
+            ',
+            $this->label,
+            $this->type,
+            $this->name,
+            $this->value,
+            $readonly,
+            $this->model->hasError($this->name) ? ' is-invalid' : '',
+            $this->model->getFirstError($this->name),
+            );
+        }
+        return $text;
     }
 }
