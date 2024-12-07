@@ -29,7 +29,7 @@ abstract class FormModel
     public function validate()
     {
         $attributes = get_object_vars($this);
-        foreach ($attributes as $attributeName => $attributeValue) {
+        foreach ($attributes as $name => $attributeValue) {
             if ($attributeValue instanceof FormModelField) {
                 $value = $attributeValue->value;
                 $rules = $attributeValue->rules;
@@ -40,33 +40,33 @@ abstract class FormModel
                     }
 
                     if ($ruleName === self::RULE_REQUIRED && !$value) {
-                        $this->addError($attributeName, self::RULE_REQUIRED);
+                        $this->addError($name, self::RULE_REQUIRED);
                     }
 
                     if ($ruleName === self::RULE_EMAIL && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
-                        $this->addError($attributeName, self::RULE_EMAIL);
+                        $this->addError($name, self::RULE_EMAIL);
                     }
 
                     if ($ruleName === self::RULE_MIN && strlen($value) < $rule['min']) {
-                        $this->addError($attributeName, self::RULE_MIN, $rule);
+                        $this->addError($name, self::RULE_MIN, $rule);
                     }
 
                     if ($ruleName === self::RULE_MAX && strlen($value) > $rule['max']) {
-                        $this->addError($attributeName, self::RULE_MAX, $rule);
+                        $this->addError($name, self::RULE_MAX, $rule);
                     }
 
                     if ($ruleName === self::RULE_MATCH && $value !== $this->{$rule['match']}->value) {
-                        $this->addError($attributeName, self::RULE_MATCH, $rule);
+                        $this->addError($name, self::RULE_MATCH, $rule);
                     }
                     if ($ruleName === self::RULE_UNIQUE) {
                         $className = $rule['class'];
-                        $uniqueAttr = $attributeName;
+                        $uniqueAttr = $name;
                         $tableName = $className::DB_TABLE;
                         $statement = Application::current()->db->pdo->prepare("SELECT * FROM $tableName WHERE $uniqueAttr = :attr");
                         $statement->execute([':attr' => $value]);
                         $record = $statement->fetchObject();
                         if ($record) {
-                            $this->addError($attributeName, self::RULE_UNIQUE, ['field' => $attributeName]);
+                            $this->addError($name, self::RULE_UNIQUE, ['field' => $name]);
                         }
                     }
                 }
@@ -75,7 +75,20 @@ abstract class FormModel
         return empty($this->errors);
     }
 
-    public function addError(string $attributeName, string $rule, $params = [])
+    public function generateForm()
+    {
+        $attributes = get_object_vars($this);
+        echo "<form action='' method='POST'>";
+            foreach ($attributes as $name => $attributeValue) {
+                if ($attributeValue instanceof FormModelField) {
+                    echo $attributeValue;
+                }
+            }
+            echo  "<input type='submit' value='Submit'>";
+        echo "</form>";
+    }
+
+    public function addError(string $name, string $rule, $params = [])
     {
         $message = $rule;
         if(Config::HIDE_FORM_FIELD_RULE_DEBUG_TEXT) {
@@ -84,42 +97,18 @@ abstract class FormModel
         foreach ($params as $key => $value) { // replace the placeholder {key} with value
             $message = str_replace("{{$key}}", $value, $message);
         }
-        $this->errors[$attributeName][] = $message;
+        $this->errors[$name][] = $message;
     }
 
-    public function hasError($attributeName)
+    public function hasError($name)
     {
-        return $this->errors[$attributeName] ?? false;
+        return $this->errors[$name] ?? false;
     }
-    public function getFirstError($attributeName)
+    public function getFirstError($name)
     {
-        return $this->errors[$attributeName][0] ?? false;
+        return $this->errors[$name][0] ?? false;
     }
 
 }
 
 
-class FormModelField
-{
-    public const TYPE_TEXT = 'text';
-    public const TYPE_PASSWORD = 'password';
-    public const TYPE_NUMBER = 'number';
-    public const TYPE_EMAIL = 'email';
-    public const TYPE_DATE = 'date';
-    public const TYPE_CHECKBOX = 'checkbox';
-
-    public $value;
-    public string $type;
-    public string $label;
-    public array $rules = [];
-
-    public function __construct($type = self::TYPE_TEXT, $label = "", $rules = [])
-    {
-        $this->type = $type;
-        $this->rules = $rules;
-
-        if($label !== "") {
-            $this->label = $label;
-        }
-    }
-}

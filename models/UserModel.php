@@ -8,7 +8,9 @@ use DateTime;
 class UserModel extends SqlModel
 {
 
-    CONST tableName = 'user';
+    CONST TABLE_NAME = 'user';
+    CONST EXTRA_ATTRIBUTES = ['worker'];
+
 
     // Columns in table
     public int $id;
@@ -23,6 +25,7 @@ class UserModel extends SqlModel
 
     // Other useful attributes
     public $worker;
+
 
     public function __construct()
     {

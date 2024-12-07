@@ -14,9 +14,11 @@ abstract class SqlModel
     public const STRING_DEFAULT_VALUE = 'unset';
     public const DATETIME_DEFAULT_VALUE = '0000-00-00 00:00:00';
 
+    const TABLE_NAME = "";
+    CONST EXTRA_ATTRIBUTES = [];
+
     public int $id = SqlModel::INT_DEFAULT_VALUE;
 
-    const tableName = "";
 
     public function __construct()
     {
@@ -80,7 +82,7 @@ abstract class SqlModel
         if($_id !== "") 
             $id = $_id;
         
-        $sql = "SELECT * FROM " . static::tableName . " WHERE id = :id";
+        $sql = "SELECT * FROM " . static::TABLE_NAME . " WHERE id = :id";
         $stmt = Application::current()->db->pdo->prepare($sql);
         $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
         $stmt->execute();
@@ -90,7 +92,7 @@ abstract class SqlModel
 
     public static function getById(int $id)
     {
-        $sql = "SELECT * FROM " . static::tableName . " WHERE id = :id";
+        $sql = "SELECT * FROM " . static::TABLE_NAME . " WHERE id = :id";
         $stmt = Application::current()->db->pdo->prepare($sql);
         $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
         $stmt->execute();
@@ -105,7 +107,7 @@ abstract class SqlModel
 
     public static function getByWhere(string $where, array $params = [])
     {
-        $sql = "SELECT * FROM " . static::tableName . " WHERE $where";
+        $sql = "SELECT * FROM " . static::TABLE_NAME . " WHERE $where";
         $stmt = Application::current()->db->pdo->prepare($sql);
         $stmt->execute($params);
         $data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -129,18 +131,21 @@ abstract class SqlModel
 
     public function insert()
     {
+
         // Get atributes of the class 
         $data = get_object_vars($this);
         foreach ($data as $key => $value) {
-            if ($value instanceof DateTime) {
+            if(in_array($key, static::EXTRA_ATTRIBUTES)) { // Ignore extra attributes
+                unset($data[$key]);
+            } else if ($value instanceof DateTime) {
                 $data[$key] = $value->format('Y-m-d H:i:s');
-            } else if ($key === 'tableName' or $key === 'id') {
+            } else if ($key === 'TABLE_NAME' or $key === 'id') {
                 unset($data[$key]);
             }
         }
 
 
-        $sql = "INSERT INTO " . static::tableName . " (";
+        $sql = "INSERT INTO " . static::TABLE_NAME . " (";
 
         $sql .= implode(', ', array_keys($data));
         $sql .= ") VALUES (";
@@ -154,14 +159,16 @@ abstract class SqlModel
     {
         $data = get_object_vars($this);
         foreach ($data as $key => $value) {
-            if ($value instanceof DateTime) {
+            if(in_array($key, static::EXTRA_ATTRIBUTES)) { // Ignore extra attributes
+                unset($data[$key]);
+            } else if ($value instanceof DateTime) {
                 $data[$key] = $value->format('Y-m-d H:i:s');
-            } else if ($key === 'tableName' or $key === 'id') {
+            } else if ($key === 'TABLE_NAME' or $key === 'id') {
                 unset($data[$key]);
             }
         }
 
-        $sql = "UPDATE " . static::tableName . " SET ";
+        $sql = "UPDATE " . static::TABLE_NAME . " SET ";
         $sql .= implode(', ', array_map(fn($key) => "$key = :$key", array_keys($data)));
         $sql .= " WHERE id = :id";
         $stmt = Application::current()->db->pdo->prepare($sql);
@@ -170,7 +177,7 @@ abstract class SqlModel
 
     public static function delete(string $id)
     {
-        $sql = "DELETE FROM " . static::tableName . " WHERE id = :id";
+        $sql = "DELETE FROM " . static::TABLE_NAME . " WHERE id = :id";
         $stmt = Application::current()->db->pdo->prepare($sql);
         $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
         $stmt->execute();
@@ -180,9 +187,9 @@ abstract class SqlModel
     public static function getColumn($column, $where = "", $params = [])
     {
         if ($where === "") {
-            $sql = "SELECT $column FROM " . static::tableName;
+            $sql = "SELECT $column FROM " . static::TABLE_NAME;
         } else {
-            $sql = "SELECT $column FROM " . static::tableName . " WHERE $where";
+            $sql = "SELECT $column FROM " . static::TABLE_NAME . " WHERE $where";
         }
         $stmt = Application::current()->db->pdo->prepare($sql);
         $stmt->bindParam(':col', $column, \PDO::PARAM_STR);
@@ -199,9 +206,9 @@ abstract class SqlModel
     public static function getColumnWithId($column, $where = "", $params = [])
     {
         if ($where === "") {
-            $sql = "SELECT id, $column FROM " . static::tableName;
+            $sql = "SELECT id, $column FROM " . static::TABLE_NAME;
         } else {
-            $sql = "SELECT id, $column FROM " . static::tableName . " WHERE $where";
+            $sql = "SELECT id, $column FROM " . static::TABLE_NAME . " WHERE $where";
         }
         $stmt = Application::current()->db->pdo->prepare($sql);
         $stmt->bindParam(':column', $column, \PDO::PARAM_STR);

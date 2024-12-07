@@ -8,7 +8,7 @@ use core\FormModelField;
 
 class UserLoginModel extends FormModel
 {
-    const DB_TABLE = UserModel::tableName;
+    const DB_TABLE = UserModel::TABLE_NAME;
 
     public FormModelField $email;
     public FormModelField $password;
@@ -16,8 +16,20 @@ class UserLoginModel extends FormModel
 
     public function __construct()
     {
-        $this->email = new FormModelField(FormModelField::TYPE_EMAIL, 'Email', [self::RULE_REQUIRED, self::RULE_EMAIL]);
-        $this->password = new FormModelField(FormModelField::TYPE_PASSWORD, 'Password', [self::RULE_REQUIRED]);
+        $this->email = new FormModelField(
+            name: "email",
+            model: $this,
+            type: FormModelField::TYPE_EMAIL,
+            label: 'Email',
+            rules: [self::RULE_REQUIRED, self::RULE_EMAIL]
+        );
+        $this->password = new FormModelField(
+            name: "password",
+            model: $this,
+            type: FormModelField::TYPE_PASSWORD,
+            label: 'Password',
+            rules: [self::RULE_REQUIRED]
+        );
     }
 
     public function login() // Returns the user id if the login is successful, otherwise false
@@ -28,13 +40,11 @@ class UserLoginModel extends FormModel
         if (!$user) {
             $this->addError('email', 'Email does not exists');
             return false;
-        }
-        else if (!password_verify($this->password->value, $user->password)) {
+        } else if (!password_verify($this->password->value, $user->password)) {
             $this->addError('password', 'Password is incorrect');
             return false;
-        }
-        else {
+        } else {
             return $user->id;
-        }   
+        }
     }
 }

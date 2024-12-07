@@ -8,7 +8,7 @@ use DateTime;
 class WorkerModel extends SqlModel
 {
 
-    CONST tableName = 'worker';
+    CONST TABLE_NAME = 'worker';
 
     public int $id;
     public int $user_id;

@@ -21,12 +21,48 @@ class UserRegisterModel extends FormModel
 
     public function __construct()
     {
-        $this->first_name = new FormModelField(label: "First Name", rules: [self::RULE_REQUIRED]);
-        $this->last_name = new FormModelField(FormModelField::TYPE_TEXT, 'Last Name', [self::RULE_REQUIRED]);
-        $this->email = new FormModelField(FormModelField::TYPE_EMAIL, 'Email', [self::RULE_REQUIRED, self::RULE_EMAIL, [self::RULE_UNIQUE, 'class' => self::class]]);
-        $this->phone_number = new FormModelField(FormModelField::TYPE_TEXT, 'Phone Number', [self::RULE_REQUIRED]);
-        $this->password = new FormModelField(FormModelField::TYPE_PASSWORD, 'Password', [self::RULE_REQUIRED, [self::RULE_MIN, 'min' => 8], [self::RULE_MAX, 'max' => 24]]);
-        $this->password_confirm = new FormModelField(FormModelField::TYPE_PASSWORD, 'Password Confirm', [self::RULE_REQUIRED, [self::RULE_MATCH, 'match' => 'password']]);
+        $this->first_name = new FormModelField(
+            name: "first_name",
+            model: $this,
+            type: FormModelField::TYPE_TEXT,
+            label: "First Name",
+            rules: [self::RULE_REQUIRED]
+        );
+        $this->last_name = new FormModelField(
+            name: "last_name",
+            model: $this,
+            type: FormModelField::TYPE_TEXT,
+            label: 'Last Name',
+            rules: [self::RULE_REQUIRED]
+        );
+        $this->email = new FormModelField(
+            name: "email",
+            model: $this,
+            type: FormModelField::TYPE_EMAIL,
+            label: 'Email',
+            rules: [self::RULE_REQUIRED, self::RULE_EMAIL, [self::RULE_UNIQUE, 'class' => self::class]]
+        );
+        $this->phone_number = new FormModelField(
+            name: "phone_number",
+            model: $this,
+            type: FormModelField::TYPE_TEXT,
+            label: 'Phone Number',
+            rules: [self::RULE_REQUIRED]
+        );
+        $this->password = new FormModelField(
+            name: "password",
+            model: $this,
+            type: FormModelField::TYPE_PASSWORD,
+            label: 'Password',
+            rules: [self::RULE_REQUIRED, [self::RULE_MIN, 'min' => 8], [self::RULE_MAX, 'max' => 24]]
+        );
+        $this->password_confirm = new FormModelField(
+            name: "password_confirm",
+            model: $this, 
+            type: FormModelField::TYPE_PASSWORD,
+            label: 'Password Confirm',
+            rules: [self::RULE_REQUIRED, [self::RULE_MATCH, 'match' => 'password']]
+        );
     }
 
     public function register()
@@ -41,6 +77,6 @@ class UserRegisterModel extends FormModel
             'phone_number' => $this->phone_number->value,
             'createdAt' => new \DateTime(),
         ]);
-        $model->save(); 
+        $model->save();
     }
 }
