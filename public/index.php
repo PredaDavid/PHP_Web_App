@@ -12,7 +12,8 @@ spl_autoload_register(function ($Name) {
 });
 
 use controllers\AuthController;
-use controllers\SiteController;
+use controllers\MainPageController;
+use controllers\UsersController;
 use core\Application;
 use core\Config;
 
@@ -21,18 +22,14 @@ date_default_timezone_set(Config::TIME_ZONE);
 $app = Application::current();
 
 // Define the routes
-$app->router->get('/', [SiteController::class, 'home']);
-$app->router->get('/test', 'test');
-$app->router->get('/contact', [SiteController::class, 'contact']);
-$app->router->post('/contact', [SiteController::class, 'handleContact']);
-
-$app->router->get('/', [SiteController::class, 'home']);
+$app->router->get('/', [MainPageController::class, 'home']);
 
 $app->router->get('/register', [AuthController::class, 'register']);
 $app->router->post('/register', [AuthController::class, 'register']);
 $app->router->get('/login', [AuthController::class, 'login']);
 $app->router->post('/login', [AuthController::class, 'login']);
-
 $app->router->get('/logout', [AuthController::class, 'logout']);
+
+$app->router->get('/user', [UsersController::class, 'user']);
 
 $app->run();

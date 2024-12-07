@@ -11,6 +11,8 @@ abstract class FormModel
     public const RULE_MATCH = '[RULE_MATCH] This field must be the same as {match}.'; // Field must be the same as another field
     public const RULE_UNIQUE = '[RULE_UNIQUE] Record with this {field} already exists.'; // Field must be unique in the database
 
+    public const RULE_READONLY = '[RULE_READONLY] This field is read only.'; // Field is read only
+
     protected array $errors = []; // All the errors are stored here
 
     public function loadData($data) // Load data from the form
@@ -104,6 +106,7 @@ class FormModelField
     public const TYPE_NUMBER = 'number';
     public const TYPE_EMAIL = 'email';
     public const TYPE_DATE = 'date';
+    public const TYPE_CHECKBOX = 'checkbox';
 
     public $value;
     public string $type;

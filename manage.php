@@ -5,7 +5,7 @@ include_once "core/Config.php";
 const HELP = 'help';
 const CREATE_DATABASE = 'create_database';
 const DELETE_DATABASE = 'delete_database';
-const CREATE_SUPER_USER = 'create_super_user';
+const CREATE_ADMIN_USER = 'create_admin_user';
 
 if(!isset($argv[1])){
     die("You need to use a command\n");
@@ -13,10 +13,11 @@ if(!isset($argv[1])){
 switch ($argv[1]) {
     case HELP:
         echo "To run a command, type: php manage.php command_name \n";
-        echo "Available commands: create_database, create_super_user, help\n";
+        echo "Available commands: create_database, create_admin_user, help\n";
         echo "  - create_database: Creates the database, the tables and populates them with some data\n";
-        echo "  - create_super_user: Creates a super user (admin)\n";
+        echo "  - create_admin_user: Creates a super user (admin)\n";
         echo "  - help: Shows this message\n";
+        echo "  - delete_database: Deletes the database\n";
         break;
     case CREATE_DATABASE:
 
@@ -88,7 +89,7 @@ switch ($argv[1]) {
             die("Database not suported");
         }
         break;
-    case CREATE_SUPER_USER:
+    case CREATE_ADMIN_USER:
         $database_type = core\Config::DB_TYPE;
 
         $email = readline("Email: ");
@@ -119,7 +120,7 @@ switch ($argv[1]) {
             die("\nUser with this email allready exists");
         }
         // Insert user in database
-        $sql = "INSERT INTO user (email,  password, status, first_name, last_name) VALUES (:email, :password, 4, ' ', ' ')";
+        $sql = "INSERT INTO user (email,  password, status, first_name, last_name, admin) VALUES (:email, :password, 4, ' ', ' ', 1)";
         $stmt = $pdo->prepare($sql);
         try {
             $stmt->execute(['email' => $email, 'password' => $password]);

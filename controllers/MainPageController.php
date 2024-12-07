@@ -10,7 +10,7 @@ use core\SqlModel;
 use models\UserModel;
 
 // controller classes and extend them from the Controller class
-class SiteController extends Controller
+class MainPageController extends Controller
 {
     public static function home()
     {
@@ -18,8 +18,11 @@ class SiteController extends Controller
         if(!Application::isLoggedIn()) 
             Response::redirect('/login');
 
+        // $users = array_map(function($email){
+        //     return explode('@', $email)[0];
+        // }, $users);
+
         $params = [
-            'user' => UserModel::getById($_SESSION['user']),
         ];
 
         return parent::render('home', $params);

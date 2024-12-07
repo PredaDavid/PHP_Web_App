@@ -149,6 +149,7 @@ nav a{
 .nav_profile {
     height: 90%;
     margin: 0px 10px;
+    margin-right: 25px;
     border-radius: 50%;
     background-color: rgb(189, 189, 189);
 }
@@ -355,13 +356,22 @@ nav a{
 .main_container {
     margin-top: var(--nav-height);
     margin-left: var(--sidebar-width);
+    height: fit-content;
     width: var(--main-width);
 
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+}
 
+.home_container {
+    padding: 20px;
+    padding-right: 30px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);  
+    grid-gap: 10px;
+    grid-auto-rows: minmax(400px, auto);
+    grid-auto-columns: minmax(400px, auto);
+}
+
+.user_container {
     padding: 20px;
     padding-right: 30px;
     display: grid;

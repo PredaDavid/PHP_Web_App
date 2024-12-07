@@ -33,7 +33,7 @@ class UserRegisterModel extends FormModel
     {
 
         $model = new UserModel();
-        $model->loadData([
+        $model->loadDataFromArray([
             'email' => $this->email->value,
             'password' => password_hash($this->password->value, PASSWORD_DEFAULT),
             'first_name' => $this->first_name->value,

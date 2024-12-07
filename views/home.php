@@ -8,7 +8,7 @@ use models\UserModel;
 ?>
 
 
-<div class="main_container" id="main">
+<div class="home_container">
         <div class="container">
             <h2>Future Events</h2>
         </div>

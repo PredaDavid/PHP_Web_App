@@ -78,7 +78,7 @@ class AuthController extends Controller
 
     public static function logout()
     {
-        if(isset(Application::current()->loggedInUser)){ // If the user is logged in
+        if(isset(Application::current()->user)){ // If the user is logged in
             unset($_SESSION['user']); // Remove the user from the session
             Application::current()->session->setFlash('success', 'You logout'); // Add a flash message
         }

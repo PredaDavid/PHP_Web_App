@@ -10,7 +10,7 @@ use core\Application;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="styles/styles_login.css">
+    <link rel="stylesheet" href="/styles/styles_login.css">
     <title>Wedding Company</title>
 </head>
 <body style="width: 100vw;height:100vh;">

@@ -7,3 +7,5 @@ test/
 Test/
 
 reference_images/
+
+.vscode/

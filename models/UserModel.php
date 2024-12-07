@@ -10,6 +10,7 @@ class UserModel extends SqlModel
 
     CONST tableName = 'user';
 
+    // Columns in table
     public int $id;
     public string $email;
     public string $password;
@@ -20,11 +21,26 @@ class UserModel extends SqlModel
     public int $status;
     public DateTime $created_at;
 
+    // Other useful attributes
+    public $worker;
+
     public function __construct()
     {
         parent::__construct();
     }
 
+
+    public function loadDataFromDb($_id = "")
+    {
+        parent::loadDataFromDb($_id);
+        $this->worker = WorkerModel::getByWhere('user_id=?', [$this->id]);
+        if (sizeof($this->worker) > 0) {
+            $this->worker = $this->worker[0];
+        }
+        else {
+            $this->worker = false;
+        }
+    }
 
 
 }

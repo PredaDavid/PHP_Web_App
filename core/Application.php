@@ -22,7 +22,7 @@ class Application
     public Database $db;
     public Session $session;
 
-    public $loggedInUser;
+    public $user;
 
     public string $rootPath;
 
@@ -40,7 +40,8 @@ class Application
     {
         if($this->session->getUser()){
             $id = $this->session->getUser();
-            $this->loggedInUser = UserModel::getById($id);
+            $this->user = new UserModel();
+            $this->user->loadDataFromDb($id);
         }
 
         $this->router->resolve();
@@ -48,6 +49,6 @@ class Application
 
     public static function isLoggedIn()
     {
-        return isset(static::$app->loggedInUser);
+        return isset(static::$app->user);
     }
 }

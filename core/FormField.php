@@ -19,10 +19,15 @@ class FormField
 
     public function __toString()
     {
+        $readonly = '';
+        if(in_array(FormModel::RULE_READONLY, $this->model->{$this->attributeName}->value->rules)) {
+            $readonly = 'readonly';
+        }
+
         return sprintf('
             <div class="form_field_container">
                 <label>%s:</label>
-                <input type="%s" name="%s" value="%s" class="form-control%s">
+                <input type="%s" name="%s" value="%s" %s class="form-control%s">
                 <div class="form_field_error">
                     %s
                 </div>
@@ -32,6 +37,7 @@ class FormField
         $this->type,
         $this->attributeName,
         $this->model->{$this->attributeName}->value,
+        $readonly,
         $this->model->hasError($this->attributeName) ? ' is-invalid' : '',
         $this->model->getFirstError($this->attributeName),
         );
