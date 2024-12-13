@@ -27,6 +27,8 @@
     --main-height: calc(100vh - var(--nav-height));
 
     --flash-message-duration : 10s;
+
+    --input-default-width: 300px;
 }
 
 /* #region General */
@@ -373,13 +375,18 @@ nav a{
 
 .user_container {
     padding: 20px;
-    padding-right: 30px;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);  
-    grid-gap: 10px;
-    grid-auto-rows: minmax(400px, auto);
-    grid-auto-columns: minmax(400px, auto);
 }
+
+.user_container > div {
+    padding: 20px;
+    width: fit-content;
+}
+
+.user_actions, .user_change_password {
+    margin-left: 20px;
+    margin-top: 20px;
+}
+
 
 
 .container {
@@ -408,6 +415,82 @@ nav a{
     grid-column: 1;
     grid-row: 2 / 4;
 }
+
+
+
+/* #region Forms and Inputs */
+
+
+
+form > * {
+    margin-top: 10px;
+}
+
+input {
+    width: var(--input-default-width);
+    padding: 10px;
+    border-radius: 5px;
+    /* border: 1px solid var(--primary-text-color); */
+    border: none;
+    background-color: var(--page-color);
+    outline: none;
+    font-size: medium;
+}
+
+form > p {
+    max-width: var(--input-default-width);
+}
+
+input:read-only {
+    background-color: rgb(240, 240, 240);
+    color: #808897;
+}
+
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin: 0px 10px;
+    background-color: var(--page-color);
+}
+
+input[type="checkbox"]:hover {
+    cursor: pointer;
+}
+
+input[type="checkbox"]:checked {
+    accent-color: var(--accent-bg-color);
+}
+
+input[type="submit"] {
+    background-color: var(--accent-bg-color);
+    color: var(--accent-text-color);
+    font-size: larger;
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+}
+input[type="submit"]:hover {
+    background-color: var(--accent-text-color);
+    color: var(--accent-bg-color);
+    outline: var(--accent-bg-color) solid 1px;
+}
+label {
+    font-size: larger;
+    margin-bottom: 5px;
+}
+
+.form_field_container {
+    margin: 10px 0px;
+    padding: 5px 0px;
+}
+
+.form_field_error {
+    color: red;
+    margin: 5px 0px;
+}
+
+/* #endregion */
 
 
 

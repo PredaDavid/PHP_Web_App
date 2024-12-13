@@ -11,7 +11,6 @@ class UserModel extends SqlModel
     CONST TABLE_NAME = 'user';
     CONST EXTRA_ATTRIBUTES = ['worker'];
 
-
     // Columns in table
     public int $id;
     public string $email;
@@ -36,7 +35,7 @@ class UserModel extends SqlModel
     public function loadDataFromDb($_id = "")
     {
         parent::loadDataFromDb($_id);
-        $this->worker = WorkerModel::getByWhere('user_id=?', [$this->id]);
+        $this->worker = WorkerModel::getByWhere('user_id=? and status=?', [$this->id,1]);
         if (sizeof($this->worker) > 0) {
             $this->worker = $this->worker[0];
         }
@@ -53,6 +52,15 @@ class UserModel extends SqlModel
             $this->worker->save();
         }
         parent::save();
+    }
+
+    public function delete()
+    {
+        if ($this->worker instanceof WorkerModel) {
+            $this->worker->delete();
+        }
+        $this->status = 0;
+        $this->save();
     }
 
 

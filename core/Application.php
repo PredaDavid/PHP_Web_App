@@ -51,4 +51,24 @@ class Application
     {
         return isset(static::$app->user);
     }
+
+    public static function isAdmin()
+    {
+        if(!static::isLoggedIn()){
+            return false;
+        }
+        return static::$app->user->admin;
+    } 
+
+    public static function isSupervisor()
+    {
+        if(!static::isLoggedIn()){
+            return false;
+        }
+        if(!static::$app->user->worker){
+            return false;
+        }
+
+        return static::$app->user->worker->supervisor;
+    }
 }

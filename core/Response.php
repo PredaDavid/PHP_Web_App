@@ -47,6 +47,11 @@ abstract class Response
         header("Location: $url");
     }
 
+    public static function reload()
+    {
+        header("Location: " . $_SERVER['REQUEST_URI']);
+    }
+
     public static function error(string $error, string $message = "", int $code = 500)
     {
         static::setStatusCode($code);

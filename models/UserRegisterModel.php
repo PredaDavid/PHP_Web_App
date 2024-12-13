@@ -10,6 +10,7 @@ use models\UserModel;
 class UserRegisterModel extends FormModel
 {
     const DB_TABLE = 'user';
+    const FORM_SUBMIT_VALUE = 'Register';
 
     public FormModelField $first_name;
     public FormModelField $last_name;
@@ -17,7 +18,6 @@ class UserRegisterModel extends FormModel
     public FormModelField $phone_number;
     public FormModelField $password;
     public FormModelField $password_confirm;
-
 
     public function __construct()
     {
@@ -70,6 +70,7 @@ class UserRegisterModel extends FormModel
 
         $model = new UserModel();
         $this->sendDataToSqlModel($model);
+        $model->status = 1;
         $model->save();
     }
 }

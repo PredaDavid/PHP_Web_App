@@ -12,23 +12,14 @@ abstract class FormModel
     public const RULE_UNIQUE = '[RULE_UNIQUE] Record with this {field} already exists.'; // Field must be unique in the database
     public const RULE_READONLY = '[RULE_READONLY] This field is read only.'; // Field is read only
 
+    public const FORM_SUBMIT_VALUE = 'Submit'; // Default form submit value
+
     protected array $errors = []; 
 
     public array $fieldsToIgnore = []; 
 
     public function loadDataFromBody($body) 
     {
-        // foreach ($body as $key => $value) {
-        //     if (property_exists($this, $key)) {
-        //         if ($this->{$key} instanceof FormModelField) {
-        //             if ($this->{$key}->type === FormModelField::TYPE_CHECKBOX) {
-        //                 $this->{$key}->value = isset($body[$key]);
-        //             } else {
-        //                 $this->{$key}->value = $value;
-        //             }
-        //         }
-        //     }
-        // }
         $properties = get_object_vars($this);
         foreach ($properties as $name => $field) {
             if ($field instanceof FormModelField) {
@@ -120,7 +111,8 @@ abstract class FormModel
     public function generateForm()
     {
         $attributes = get_object_vars($this);
-        echo "<form action='' method='POST'>";
+        $submitText = static::FORM_SUBMIT_VALUE;
+        echo "<form action='' method='POST' >";
         foreach ($attributes as $name => $attributeValue) {
             if(in_array($name, $this->fieldsToIgnore)) {
                 continue;
@@ -129,7 +121,7 @@ abstract class FormModel
                 echo $attributeValue;
             }
         }
-        echo  "<input type='submit' value='Submit'>";
+        echo  "<input type='submit' value='$submitText' name='$submitText'>";
         echo "</form>";
     }
 

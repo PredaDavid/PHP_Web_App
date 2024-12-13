@@ -15,6 +15,12 @@ class Request
         return substr($path, 0, $pos);
     }
 
+    public function getUrl()
+    {
+        $url = $_SERVER['REQUEST_URI'] ?? '/';
+        return $url;
+    }
+
     public function getBody()
     {
         $body = [];

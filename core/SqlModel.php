@@ -86,6 +86,9 @@ abstract class SqlModel
         $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
         $stmt->execute();
         $data = $stmt->fetch(\PDO::FETCH_ASSOC);
+        if (!$data) {
+            throw new \Exception("Id was not found in the database");
+        }
         $this->loadDataFromArray($data);
     }
 
@@ -184,13 +187,13 @@ abstract class SqlModel
         return $instances;
     }
 
-    public static function deleteById(string $id)
-    {
-        $sql = "DELETE FROM " . static::TABLE_NAME . " WHERE id = :id";
-        $stmt = Application::current()->db->pdo->prepare($sql);
-        $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
-        $stmt->execute();
-    }
+    // public static function deleteById(string $id)
+    // {
+    //     $sql = "DELETE FROM " . static::TABLE_NAME . " WHERE id = :id";
+    //     $stmt = Application::current()->db->pdo->prepare($sql);
+    //     $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
+    //     $stmt->execute();
+    // }
 
     // Get a column from the table; For the params use :paramName
     public static function getColumn($column, $where = "", $params = [])

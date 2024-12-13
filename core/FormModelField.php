@@ -39,7 +39,11 @@ class FormModelField
     {
         $readonly = '';
         if(in_array(FormModel::RULE_READONLY, $this->rules)) {
-            $readonly = 'readonly';
+            if($this->type === self::TYPE_CHECKBOX) {
+                $readonly = 'disabled';
+            } else {
+                $readonly = 'readonly';
+            }
         }
 
         if ($this->type === self::TYPE_CHECKBOX) {
@@ -65,6 +69,7 @@ class FormModelField
             $text = sprintf('
                 <div class="form_field_container">
                     <label>%s:</label>
+                    <br>
                     <input type="%s" name="%s" value="%s" %s class="form-control%s">
                     <div class="form_field_error">
                         %s

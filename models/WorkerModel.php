@@ -23,6 +23,11 @@ class WorkerModel extends SqlModel
     }
 
         
+    public function delete()
+    {
+        $this->status = 0;
+        $this->save();
+    }
 
 
 

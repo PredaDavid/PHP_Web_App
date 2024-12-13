@@ -31,7 +31,9 @@ use models\UserModel;
             <a href="">Hello </a>
             <a href="/">Home</a>
             <button>
-                <img src="/images/icons/icon_settings.svg" alt="">
+                <a href="/user">
+                    <img src="/images/icons/icon_settings.svg" alt="">
+                </a>
             </button>
             <button onclick="toggleByOpacity('notifications_container');toggleActiveClass(this)">
                 <img src="/images/icons/icon_notification.svg" alt="">
@@ -113,7 +115,7 @@ use models\UserModel;
                 </button>
             </div>
 
-            <?php if(Application::current()->user->worker or Application::current()->user->admin): ?>
+            <?php if(Application::isSupervisor() or Application::isAdmin()): ?>
                 <button class="sidebar_button flex_row" onclick="sidebarDropdown(this)">
                     <img src="/images/icons/icon_clip.svg"> 
                     <div class="sidebar_button_text">Users</div>  

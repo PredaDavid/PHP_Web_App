@@ -11,6 +11,7 @@ use models\UserModel;
 class UserWorkerFormModel extends FormModel
 {
     const DB_TABLE = 'user';
+    const FORM_SUBMIT_VALUE = 'Update User';
 
     public FormModelField $id;
     public FormModelField $email;
@@ -60,7 +61,7 @@ class UserWorkerFormModel extends FormModel
             model: $this,
             type: FormModelField::TYPE_TEXT,
             label: 'Phone Number',
-            rules: []
+            rules: [self::RULE_REQUIRED]
         );
         $this->admin = new FormModelField(
             name: "admin",
@@ -74,7 +75,7 @@ class UserWorkerFormModel extends FormModel
             model: $this,
             type: FormModelField::TYPE_NUMBER,
             label: 'Status',
-            rules: []
+            rules: [self::RULE_READONLY]
         );
         $this->worker = new FormModelField(
             name: "worker",
@@ -104,6 +105,14 @@ class UserWorkerFormModel extends FormModel
             label: 'Special Effects License',
             rules: []
         );
+
+        if(!Application::isAdmin()) {
+            $this->admin->rules[] = self::RULE_READONLY;
+            $this->worker->rules[] = self::RULE_READONLY;
+            $this->supervisor->rules[] = self::RULE_READONLY;
+            $this->can_drive->rules[] = self::RULE_READONLY;
+            $this->special_effects_license->rules[] = self::RULE_READONLY;
+        }
     }
 
     public function loadDataFromSqlModel(SqlModel $model)
@@ -126,18 +135,27 @@ class UserWorkerFormModel extends FormModel
     {
 
         if ($model instanceof UserModel) {
-            if ($this->worker->value and !$model->worker) {
+            if ($this->worker->value and !$model->worker) { // if we set the user as a worker but they are not a worker yet
                 $model->worker = new WorkerModel();
-                $model->worker->user_id = $model->id;
-                $model->worker->supervisor = $this->supervisor->value;
-                $model->worker->can_drive = $this->can_drive->value;
-                $model->worker->special_effects_license = $this->special_effects_license->value;
+                // We try to see if the user was previously a worker
+                $wasWorker = WorkerModel::getByWhere('user_id = ?', [$model->id]);
+                if(count($wasWorker) !== 0) { // If the user was previously a worker
+                    $model->worker = $wasWorker[0];
+                    $model->worker->status = 1;
+                }
+                else { // If the user was not previously a worker
+                    $model->worker->status = 1;
+                    $model->worker->user_id = $model->id;
+                    $model->worker->supervisor = $this->supervisor->value;
+                    $model->worker->can_drive = $this->can_drive->value;
+                    $model->worker->special_effects_license = $this->special_effects_license->value;
+                }
             }
-            else if (!$this->worker->value and $model->worker) {
+            else if (!$this->worker->value and $model->worker) { // If we unset the user as a worker but they are a worker
                 $model->worker->delete();
                 $model->worker = false;
             }
-            else if ($this->worker->value and $model->worker) {
+            else if ($this->worker->value and $model->worker) { // If we update the worker attributes
                 $model->worker->supervisor = $this->supervisor->value;
                 $model->worker->can_drive = $this->can_drive->value;
                 $model->worker->special_effects_license = $this->special_effects_license->value;
