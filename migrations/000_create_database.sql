@@ -39,7 +39,7 @@ CREATE TABLE item_type (
     description VARCHAR(500) NULL,
     rental_price DECIMAL(10, 2) NULL,
     replacement_price DECIMAL(10, 2) NULL,
-    image_name VARCHAR(200) NULL,
+    image VARCHAR(200) NULL,
     need_cleaning_after_use BOOLEAN DEFAULT FALSE,
     one_time_use BOOLEAN DEFAULT FALSE,
     status BOOLEAN DEFAULT TRUE
@@ -68,7 +68,7 @@ CREATE TABLE service (
     description VARCHAR(500) NULL,
     price DECIMAL(10, 2) NULL,
     requires_special_effects_license BOOLEAN DEFAULT FALSE,
-    image_name VARCHAR(200) NULL,
+    image VARCHAR(200) NULL,
     status BOOLEAN DEFAULT TRUE
 );
 

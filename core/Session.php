@@ -4,20 +4,19 @@ namespace core;
 
 class Session
 {
-    private $flash_messages_to_remove = [];
+    private static array $flash_messages_to_remove = [];
 
-    public function __construct()
+    public static function startSession()
     {
-        session_start();
+        session_start(); // Start the session
 
-        $this->flash_messages_to_remove = $_SESSION['flash_messages'] ?? [];
-
+        static::$flash_messages_to_remove = $_SESSION['flash_messages'] ?? []; // Save the flash messages to remove when the session ends
     }
 
-    public function __destruct()
+    public static function endSession()
     {
-
-        foreach ($this->flash_messages_to_remove as $key => $value) {
+        // Remove the flash messages
+        foreach (static::$flash_messages_to_remove as $key => $value) {
             unset($_SESSION['flash_messages'][$key]);
         }
     }
@@ -35,9 +34,24 @@ class Session
         return false;
     }
 
-    public static function getUser()
+    public static function getAllFlashMessages()
     {
-        return $_SESSION['user'] ?? false;
+        return $_SESSION['flash_messages'] ?? [];
     }
+
+    public static function get($key)
+    {
+        return $_SESSION[$key] ?? false;
+    }
+
+    public static function set($key, $value)
+    {
+        $_SESSION[$key] = $value;
+    }
+
+    public static function remove($key)
+    {
+        unset($_SESSION[$key]);
+    }   
 
 }

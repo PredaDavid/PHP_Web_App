@@ -2,9 +2,6 @@
 
 const USE_LAYOUT = 'layouts/main.php'; //Marks the use of a layout
 
-use core\Application;
-use models\UserModel;
-
 ?>
 
 

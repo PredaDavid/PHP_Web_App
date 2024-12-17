@@ -1,5 +1,4 @@
 <?php const USE_LAYOUT = 'layouts/login.php'; //Marks the use of a layout ?>
-<?php use core\FormField; ?>
 
 <h1>Register</h1>
 

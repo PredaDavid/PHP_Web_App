@@ -8,28 +8,26 @@ use core\Request;
 use core\Response;
 use core\Session;
 use core\SqlModel;
-use models\UserRegisterModel;
-use models\UserLoginModel;
-use models\UserModel;
-use models\UserWorkerFormModel;
-use models\UserChangePasswordModel;
+
+use models\sql\User;
+use models\form\UserForm;
+use models\form\UserChangePasswordForm;
 
 class UsersController extends Controller
 {
     public static function user(Request $request) {
         // If we are not logged in, redirect to the login page
-        if(!Application::isLoggedIn()){
+        if(!Controller::isUserLoggedIn()){
             Response::redirect('login');
             return;
         }
 
-
         if($request->isGet()) {
-            $user = new UserModel();
+            $user = new User();
             $change_password_form = null;
             
             if(isset($request->getBody()['id'])) {
-                if(!Application::isAdmin()) { // If the user is not an admin
+                if(!Controller::isUserAdmin()) { // If the user is not an admin
                     Response::redirect('/'); // Redirect to the home page
                     return;
                 }
@@ -43,59 +41,57 @@ class UsersController extends Controller
             else {
                 // If the id is not set return the current user
                 $user->loadDataFromDb(Application::current()->user->id);
-                $change_password_form = new UserChangePasswordModel();
+                $change_password_form = new UserChangePasswordForm();
             }
-            $user_form = new UserWorkerFormModel();
+            $user_form = new UserForm();
             $user_form->loadDataFromSqlModel($user);
             $params = [
-                'user' => $user,
                 'user_form' => $user_form,
                 'change_password_form' => $change_password_form,
             ];
             return parent::render('user', $params);
 
         }
-        else {
-            $change_password_form = new UserChangePasswordModel();
+        else { // POST
+            $change_password_form = new UserChangePasswordForm();
             // We check which submit button was pressed
-            if( in_array(UserWorkerFormModel::FORM_SUBMIT_VALUE, $request->getBody()) ) {
-                $user_form = new UserWorkerFormModel();
-                $user_form->loadDataFromBody($request->getBody());
+            if( in_array(UserForm::FORM_SUBMIT_VALUE, $request->getBody()) ) {
+                $user_form = new UserForm();
+                $user_form->loadDataFromArray($request->getBody());
 
                 // Update user values
                 if($user_form->validate()) {
-                    $user = new UserModel();
+                    $user = new User();
     
                     $user->loadDataFromDb($user_form->id->value);
-                    $user_form->sendDataToSqlModel($user);
-    
+                    $user_form->loadDataToSqlModel($user);
                     $user->save();
+
+                    Session::setFlash('success', 'User updated successfully');
                     Response::redirect($request->getUrl());
                 }
                 else {
                     $params = [
-                        'user' => new UserModel(),
                         'user_form' => $user_form,
                         'change_password_form' => $change_password_form,
                     ];
                     return parent::render('user', $params);
                 }
             }
-            else if( in_array(UserChangePasswordModel::FORM_SUBMIT_VALUE, $request->getBody()) ) {
+            else if( in_array(UserChangePasswordForm::FORM_SUBMIT_VALUE, $request->getBody()) ) {
                 // Change password
-                $change_password_form = new UserChangePasswordModel();
-                $change_password_form->loadDataFromBody($request->getBody());
+                $change_password_form = new UserChangePasswordForm();
+                $change_password_form->loadDataFromArray($request->getBody());
                 if($change_password_form->validate() && $change_password_form->changePassword()) {
-                        Session::setFlash('success', 'Password changed successfully');
-                        Response::redirect('/');
+                    Session::setFlash('success', 'Password changed successfully');
+                    Response::redirect('/');
                 }
                 else {
-                    $user = new UserModel();
+                    $user = new User();
                     $user->loadDataFromDb(Application::current()->user->id);
-                    $user_form = new UserWorkerFormModel();
+                    $user_form = new UserForm();
                     $user_form->loadDataFromSqlModel($user);
                     $params = [
-                        'user' => new UserModel(),
                         'user_form' => $user_form,
                         'change_password_form' => $change_password_form,
                     ];
@@ -104,16 +100,16 @@ class UsersController extends Controller
             }
             else if( in_array('Delete User', $request->getBody()) ) {
                 // Delete user
-                $user = new UserModel();
-                $user->loadDataFromDb($request->getBody('id'));
+                $user = new User();
+                $user->loadDataFromDb($request->getBody()['id']);
                 $user->delete();
                 Session::setFlash('success', 'User deleted successfully');
                 Response::reload();
             }
             else if (in_array('Reset Password', $request->getBody())) {
                 // Reset password
-                $user = new UserModel();
-                $user->loadDataFromDb($user_form->id->value);
+                $user = new User();
+                $user->loadDataFromDb($request->getBody()['id']);
                 $user->password = password_hash($user->phone_number, PASSWORD_DEFAULT);
                 $user->save();
                 Session::setFlash('success', 'Password reset successfully');
@@ -121,8 +117,8 @@ class UsersController extends Controller
             }
             else if (in_array('Reactivate User', $request->getBody())) {
                 // Reset password
-                $user = new UserModel();
-                $user->loadDataFromDb($user_form->id->value);
+                $user = new User();
+                $user->loadDataFromDb($request->getBody()['id']);
                 $user->status = 1;
                 $user->save();
                 Session::setFlash('success', 'User reactivated successfully');

@@ -1,14 +1,14 @@
 <?php
 
-namespace models;
+namespace models\sql;
 
 use core\SqlModel;
 use DateTime;
 
-class WorkerModel extends SqlModel
+class Worker extends SqlModel
 {
 
-    CONST TABLE_NAME = 'worker';
+    const TABLE_NAME = 'worker';
 
     public int $id;
     public int $user_id;
@@ -22,13 +22,10 @@ class WorkerModel extends SqlModel
         parent::__construct();
     }
 
-        
+
     public function delete()
     {
         $this->status = 0;
         $this->save();
     }
-
-
-
 }

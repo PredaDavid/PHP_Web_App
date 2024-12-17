@@ -373,6 +373,12 @@ nav a{
     grid-auto-columns: minmax(400px, auto);
 }
 
+.item_types_container {
+    grid-auto-columns: minmax(100px, auto);
+    grid-auto-rows: minmax(100px, auto);
+
+}
+
 .user_container {
     padding: 20px;
 }
@@ -420,7 +426,10 @@ nav a{
 
 /* #region Forms and Inputs */
 
-
+form {
+    width: fit-content;
+    height: fit-content;
+}
 
 form > * {
     margin-top: 10px;
@@ -483,6 +492,8 @@ label {
 .form_field_container {
     margin: 10px 0px;
     padding: 5px 0px;
+    width: fit-content;
+    height: fit-content;
 }
 
 .form_field_error {

@@ -1,7 +1,9 @@
 <?php
 
+use core\Controller;
 use core\Application;
-use models\UserModel;
+use core\Session;
+use models\sql\User;
 ?>
 
 <!DOCTYPE html>
@@ -78,7 +80,7 @@ use models\UserModel;
                 <h2>Hello <?php echo Application::current()->user->first_name ?>!</h2>
 
                 <div class="flex_row">
-                    <?php if(Application::isLoggedIn()): ?>
+                    <?php if(Controller::isUserLoggedIn()): ?>
                         <!-- <a href="/logout"><h2>Logout</h2></a> -->
                         <a href="logout">Logout</a>
                     <?php else: ?>
@@ -115,14 +117,14 @@ use models\UserModel;
                 </button>
             </div>
 
-            <?php if(Application::isSupervisor() or Application::isAdmin()): ?>
+            <?php if(Controller::isUserSupervisor() or Controller::isUserAdmin()): ?>
                 <button class="sidebar_button flex_row" onclick="sidebarDropdown(this)">
                     <img src="/images/icons/icon_clip.svg"> 
                     <div class="sidebar_button_text">Users</div>  
                     <img src="/images/icons/icon_arrow_down.svg">
                 </button>
                 <div class="sidebar_dropdown flex_column sidebar_buttons_container ">
-                    <?php $users = UserModel::getColumnWithId('email'); ?>
+                    <?php $users = User::getColumnWithId('email'); ?>
                     <?php foreach($users as $user): ?>
                         <button class="sidebar_button flex_row sidebar_dropdown_element" onclick='goToLink(" <?php echo "/user?id=".$user["id"].""  ?> ")';>
                             <img src="/images/icons/icon_list.svg"> 
@@ -201,7 +203,7 @@ use models\UserModel;
 
 
     <div class="flash_messages_container flex_column">
-        <?php foreach ($_SESSION['flash_messages'] as $message):?>
+        <?php foreach (Session::getAllFlashMessages() as $message):?>
             <div class="flash_message" >
                 <p><?php echo $message ?></p>
                 <div class="flash_message_line"></div>

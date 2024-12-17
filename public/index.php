@@ -12,6 +12,7 @@ spl_autoload_register(function ($Name) {
 });
 
 use controllers\AuthController;
+use controllers\ItemTypeController;
 use controllers\MainPageController;
 use controllers\UsersController;
 use core\Application;
@@ -32,5 +33,7 @@ $app->router->get('/logout', [AuthController::class, 'logout']);
 
 $app->router->get('/user', [UsersController::class, 'user']);
 $app->router->post('/user', [UsersController::class, 'user']);
+
+$app->router->get('/item-types', [ItemTypeController::class, 'item_types']);
 
 $app->run();

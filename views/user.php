@@ -2,9 +2,7 @@
 
 const USE_LAYOUT = 'layouts/main.php'; //Marks the use of a layout
 
-use core\Application;
-use core\FormField;
-
+use core\Controller;
 ?>
 
 
@@ -15,13 +13,13 @@ use core\FormField;
         <?php $user_form->generateForm(); ?>
     </div>
     
-    <?php if( Application::isAdmin() and is_null($change_password_form) ):?>
+    <?php if( Controller::isUserAdmin() and is_null($change_password_form) ):?>
             <div class="container user_actions">
                 <h2>User Actions</h2>
                 <form action="" method="POST" class="flex_column">
                     <!-- For storing the id -->
-                    <input type="text" name="id" hidden value='<?php echo $user->id ?>'> 
-                    <?php if($user->status===1): ?>
+                    <input type="text" name="id" hidden value='<?php echo $user_form->id->value ?>'> 
+                    <?php if($user_form->status->value===1): ?>
                         <p>- By deleting the user his status will be set to 0. </p>
                         <input type="submit" value="Delete User" name="delete_user">
                     <?php else: ?>

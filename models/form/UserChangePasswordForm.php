@@ -1,13 +1,13 @@
 <?php
 
-namespace models;
+namespace models\form;
 
 use core\FormModel;
 use core\Application;
 use core\FormModelField;
-use models\UserModel;
+use models\User;
 
-class UserChangePasswordModel extends FormModel
+class UserChangePasswordForm extends FormModel
 {
     const DB_TABLE = 'user';
     const FORM_SUBMIT_VALUE = 'Change Password';

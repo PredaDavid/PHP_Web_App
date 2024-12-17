@@ -2,7 +2,7 @@
 
 namespace core;
 
-use models\UserModel;
+use models\sql\User;
 
 // Main class of the framework
 class Application
@@ -20,55 +20,38 @@ class Application
     public Router $router;
     public Request $request;
     public Database $db;
-    public Session $session;
 
-    public $user;
+    public $user; // The logged in user
 
     public string $rootPath;
+    public \DateTime $currentDateTime; // The current date and time; This is used for testing purposes
 
     private function __construct()
     {
+        Session::startSession();
+
         $this->request = new Request();
         $this->router = new Router($this->request);
-        $this->session = new Session();
         $this->db = new Database();
 
         $this->rootPath = str_replace("\\core", "", __DIR__); // Get the root of the project
+        $this->currentDateTime = new \DateTime('now');
+    }
+
+    public function __destruct()
+    {
+        Session::endSession();
     }
 
     public function run()
     {
-        if($this->session->getUser()){
-            $id = $this->session->getUser();
-            $this->user = new UserModel();
+        // Check if the user is logged in and load the user object
+        if (Session::get('user_id')) {
+            $id = Session::get('user_id');
+            $this->user = new User();
             $this->user->loadDataFromDb($id);
         }
 
         $this->router->resolve();
-    }
-
-    public static function isLoggedIn()
-    {
-        return isset(static::$app->user);
-    }
-
-    public static function isAdmin()
-    {
-        if(!static::isLoggedIn()){
-            return false;
-        }
-        return static::$app->user->admin;
-    } 
-
-    public static function isSupervisor()
-    {
-        if(!static::isLoggedIn()){
-            return false;
-        }
-        if(!static::$app->user->worker){
-            return false;
-        }
-
-        return static::$app->user->worker->supervisor;
     }
 }

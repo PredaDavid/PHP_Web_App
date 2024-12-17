@@ -3,15 +3,16 @@
 namespace core;
 
 // All the configuration values are stored here
-class Config {
+class Config
+{
     // const DB_TYPE = 'sqlite'; // mysql or sqlite
     const DB_TYPE = 'mysql'; // mysql or sqlite
-    
+
     const DB_HOST = 'localhost';
     const DB_PORT = '3306';
 
     const DB_NAME = 'wedding_decoration_company';
-    
+
     const DB_USER = 'root';
     const DB_PASSWORD = '';
 

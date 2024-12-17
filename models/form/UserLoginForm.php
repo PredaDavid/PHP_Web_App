@@ -1,14 +1,16 @@
 <?php
 
-namespace models;
+namespace models\form;
 
 use core\FormModel;
 use core\Application;
 use core\FormModelField;
 
-class UserLoginModel extends FormModel
+use models\sql\User;
+
+class UserLoginForm extends FormModel
 {
-    const DB_TABLE = UserModel::TABLE_NAME;
+    const DB_TABLE = User::TABLE_NAME;
 
     public FormModelField $email;
     public FormModelField $password;

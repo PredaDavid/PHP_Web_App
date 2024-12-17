@@ -1,15 +1,15 @@
 <?php
 
-namespace models;
+namespace models\sql;
 
 use core\SqlModel;
 use DateTime;
 
-class UserModel extends SqlModel
+class User extends SqlModel
 {
 
-    CONST TABLE_NAME = 'user';
-    CONST EXTRA_ATTRIBUTES = ['worker'];
+    const TABLE_NAME = 'user';
+    const EXTRA_ATTRIBUTES = ['worker'];
 
     // Columns in table
     public int $id;
@@ -23,7 +23,7 @@ class UserModel extends SqlModel
     public DateTime $created_at;
 
     // Other useful attributes
-    public $worker;
+    public $worker; // Worker or false
 
 
     public function __construct()
@@ -31,24 +31,20 @@ class UserModel extends SqlModel
         parent::__construct();
     }
 
-
     public function loadDataFromDb($_id = "")
     {
         parent::loadDataFromDb($_id);
-        $this->worker = WorkerModel::getByWhere('user_id=? and status=?', [$this->id,1]);
+        $this->worker = Worker::getByWhere('user_id=? and status=?', [$this->id, 1]);
         if (sizeof($this->worker) > 0) {
             $this->worker = $this->worker[0];
-        }
-        else {
+        } else {
             $this->worker = false;
         }
     }
 
-    public function save() 
+    public function save()
     {
-        // var_dump($this->worker);
-        // die();
-        if ($this->worker instanceof WorkerModel) {
+        if ($this->worker instanceof Worker) {
             $this->worker->save();
         }
         parent::save();
@@ -56,12 +52,10 @@ class UserModel extends SqlModel
 
     public function delete()
     {
-        if ($this->worker instanceof WorkerModel) {
+        if ($this->worker instanceof Worker) {
             $this->worker->delete();
         }
         $this->status = 0;
         $this->save();
     }
-
-
 }

@@ -14,26 +14,38 @@ abstract class FormModel
 
     public const FORM_SUBMIT_VALUE = 'Submit'; // Default form submit value
 
-    protected array $errors = []; 
+    protected array $errors = []; // Array to store form validation errors
 
-    public array $fieldsToIgnore = []; 
+    public array $fieldsToIgnore = []; // Fields to ignore when generating the form
 
-    public function loadDataFromBody($body) 
+    /**
+     * Loads data from array to the form model.
+     * Assigns values from the array to the corresponding fields.
+     * Usually used to load data from $_POST or $_GET.
+     * @param array $arr The associative array containing form data.
+     * @return void
+     */
+    public function loadDataFromArray($arr)
     {
         $properties = get_object_vars($this);
         foreach ($properties as $name => $field) {
             if ($field instanceof FormModelField) {
                 if ($field->type === FormModelField::TYPE_CHECKBOX) {
-                    $field->value = isset($body[$name]);
-                }
-                else if (isset($body[$name])) {
-                    $field->value = $body[$name];
+                    $field->value = isset($arr[$name]);
+                } else if (isset($arr[$name])) {
+                    $field->value = $arr[$name];
                 }
             }
         }
     }
 
-    public function loadDataFromSqlModel(SqlModel $model) {
+    /**
+     * Loads data from a given SqlModel instance into the current FormModel instance.
+     * @param SqlModel $model The SqlModel instance from which to load the data.
+     * @return void
+     */
+    public function loadDataFromSqlModel(SqlModel $model)
+    {
         $attributes = get_object_vars($this);
         foreach ($attributes as $name => $attributeValue) {
             if ($attributeValue instanceof FormModelField and isset($model->{$name})) {
@@ -42,23 +54,34 @@ abstract class FormModel
         }
     }
 
-    public function sendDataToSqlModel(SqlModel $model, array $toIgnore=[]) {
+    /**
+     * Loads data to an existing SqlModel.
+     * This method should be extended for every formModel, that reference a model that has extra attributes.
+     * The method should call the parent method and then load the extra attributes.
+     * @param SqlModel $model The SqlModel instance to which to load the data.
+     * @param array $toIgnore An array of field names to ignore when loading data.
+     * @return void
+     */
+    public function loadDataToSqlModel(SqlModel $model, array $toIgnore = [])
+    {
         $attributes = get_object_vars($this);
         foreach ($attributes as $name => $field) {
             if (in_array($name, $toIgnore)) continue; // Skip if the field is in the ignore list
             if (!isset($model->{$name})) continue; // Skip if the attribute does not exist in the model
             if ($field->type === FormModelField::TYPE_CHECKBOX) {
                 $model->{$name} = $field->value ? 1 : 0;
-            }
-            else if ($field->type === FormModelField::TYPE_PASSWORD) {
+            } else if ($field->type === FormModelField::TYPE_PASSWORD) {
                 $model->{$name} = password_hash($field->value, PASSWORD_DEFAULT);
-            }
-            else {
+            } else {
                 $model->{$name} = $field->value;
             }
         }
     }
 
+    /**
+     * Validates the form model fields based on their defined rules.
+     * @return bool Returns true if there are no validation errors, otherwise false.
+     */
     public function validate()
     {
         $attributes = get_object_vars($this);
@@ -92,9 +115,8 @@ abstract class FormModel
                         $this->addError($name, self::RULE_MATCH, $rule);
                     }
                     if ($ruleName === self::RULE_UNIQUE) {
-                        $className = $rule['class'];
-                        $uniqueAttr = $name;
-                        $tableName = $className::DB_TABLE;
+                        $uniqueAttr = $rule['column'];
+                        $tableName = $rule['table'];
                         $statement = Application::current()->db->pdo->prepare("SELECT * FROM $tableName WHERE $uniqueAttr = :attr");
                         $statement->execute([':attr' => $value]);
                         $record = $statement->fetchObject();
@@ -108,23 +130,47 @@ abstract class FormModel
         return empty($this->errors);
     }
 
+    /**
+     * Generates an HTML form based on the properties of the current object.
+     * @return void
+     */
     public function generateForm()
     {
         $attributes = get_object_vars($this);
         $submitText = static::FORM_SUBMIT_VALUE;
-        echo "<form action='' method='POST' >";
+
+        // Check if the form will have a file
+        $hasImage = false;
         foreach ($attributes as $name => $attributeValue) {
-            if(in_array($name, $this->fieldsToIgnore)) {
+            if ($attributeValue instanceof FormModelField and $attributeValue->type === FormModelField::TYPE_FILE) {
+                $hasImage = true;
+                break;
+            }
+        }
+
+        if ($hasImage)
+            echo "<form action='' method='POST' enctype='multipart/form-data'>";
+        else
+            echo "<form action='' method='POST' >";
+
+        foreach ($attributes as $name => $attributeValue) {
+            if (in_array($name, $this->fieldsToIgnore)) {
                 continue;
             }
             if ($attributeValue instanceof FormModelField) {
                 echo $attributeValue;
             }
         }
-        echo  "<input type='submit' value='$submitText' name='$submitText'>";
+        echo "<input type='submit' value='$submitText' name='$submitText'>";
         echo "</form>";
     }
 
+    /**
+     * Adds an error message for a specific form field.
+     * @param string $name The name of the form field.
+     * @param string $rule The validation rule that was violated or a message to display.
+     * @param array $params Optional parameters to replace placeholders in the rule message.
+     */
     public function addError(string $name, string $rule, $params = [])
     {
         $message = $rule;
@@ -137,10 +183,21 @@ abstract class FormModel
         $this->errors[$name][] = $message;
     }
 
+    /**
+     * Checks if there is an error for a specific form field.
+     * @param string $name The name of the form field.
+     * @return bool|array Returns false if no error exists, otherwise returns the error array.
+     */
     public function hasError($name)
     {
         return $this->errors[$name] ?? false;
     }
+
+    /**
+     * Retrieves the first error message for a specific form field.
+     * @param string $name The name of the form field.
+     * @return bool|string Returns false if no error exists, otherwise returns the first error message.
+     */
     public function getFirstError($name)
     {
         return $this->errors[$name][0] ?? false;
