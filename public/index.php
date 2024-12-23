@@ -35,5 +35,6 @@ $app->router->get('/user', [UsersController::class, 'user']);
 $app->router->post('/user', [UsersController::class, 'user']);
 
 $app->router->get('/item-types', [ItemTypeController::class, 'item_types']);
+$app->router->post('/item-types', [ItemTypeController::class, 'item_types']);
 
 $app->run();

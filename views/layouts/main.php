@@ -200,14 +200,14 @@ use models\sql\User;
         <?php echo $content; //A valid layout needs to ouput the variable content ?>
     </div>
 
-
-
     <div class="flash_messages_container flex_column">
-        <?php foreach (Session::getAllFlashMessages() as $message):?>
-            <div class="flash_message" >
-                <p><?php echo $message ?></p>
-                <div class="flash_message_line"></div>
-            </div>
+        <?php foreach (Session::getAllFlashMessages() as $messageType=>$messages):?>
+            <?php foreach($messages as $message): ?>
+                <div class="flash_message flash_<?php echo $messageType ?>" >
+                    <p><?php echo $message ?></p>
+                    <div class="flash_message_line"></div>
+                </div>
+            <?php endforeach; ?>
         <?php endforeach; ?>
     </div>
 

@@ -50,73 +50,86 @@ class Request
     }
 
     /**
-     * Save an image to the server
-     * TODO: Finish this method
-     * !!IS NOT FINISHED!!
-     * @return string
+     * Check if a file was sent in the request
+     * @param string $fileInputName The name of the file input field
+     * @return bool
      */
-    public function saveImage()
+    public static function wasFileSent(string $fileInputName)
     {
-        try {
-            if ( // Undefined | Multiple Files | $_FILES Corruption Attack
-                !isset($_FILES['upfile']['error']) ||
-                is_array($_FILES['upfile']['error'])
-            ) {
-                throw new \RuntimeException('Invalid parameters.');
-            }
+        if(isset($_FILES[$fileInputName]['name']))
+            return !empty($_FILES[$fileInputName]['name']);
+        return false;
+    }
 
-            switch ($_FILES['upfile']['error']) {
-                case UPLOAD_ERR_OK:
-                    break;
-                case UPLOAD_ERR_NO_FILE:
-                    throw new \RuntimeException('No file sent.');
-                case UPLOAD_ERR_INI_SIZE:
-                case UPLOAD_ERR_FORM_SIZE:
-                    throw new \RuntimeException('Exceeded filesize limit.');
-                default:
-                    throw new \RuntimeException('Unknown errors.');
-            }
+    /**
+     * Get the extension of the file that was sent
+     * @param string $fileInputName The name of the file input field
+     * @return string|bool The extension of the file or false if no file was sent
+     */
+    public static function getSendedFileExtension(string $fileInputName)
+    {
+        if(isset($_FILES[$fileInputName]['name']))
+            return strtolower(pathinfo($_FILES[$fileInputName]['name'], PATHINFO_EXTENSION));
+        return false;
+    }
 
+    /**
+     * Save a file to the server
+     * @param string $inputFieldName The name of the input field
+     * @param string $uploadDirectory The directory where the file will be saved
+     * @param string $newFileName The new name of the file. WITHOUT EXTENSION
+     * @param bool $canOverwrite If the file can be overwritten
+     * @param bool $isImage If the file is an image. Default is true
+     * @return array An array of errors
+     */
+    public static function saveFile($inputFieldName, $uploadDirectory, $newFileName, $canOverwrite = false, $isImage = true)
+    {
+        $mb = 1048576; // 1MB in bytes
+        $errors = [];
 
-            if ($_FILES['upfile']['size'] > 1000000)
-                throw new \RuntimeException('Exceeded filesize limit.');
-
-            // $_FILES['upfile']['mime'] should not be trusted;
-            $finfo = new \finfo(FILEINFO_MIME_TYPE);
-            if (false === $ext = array_search(
-                $finfo->file($_FILES['upfile']['tmp_name']),
-                array(
-                    'jpg' => 'image/jpeg',
-                    'png' => 'image/png',
-                    'jpeg' => 'image/jpeg',
-                    'webp' => 'image/webp',
-                    'bmp' => 'image/bmp',
-                    'gif' => 'image/gif',
-                ),
-                true
-            )) {
-                throw new \RuntimeException('Invalid file format.');
-            }
-
-            // You should name it uniquely.
-            // DO NOT USE $_FILES['upfile']['name'] WITHOUT ANY VALIDATION !!
-            // On this example, obtain safe unique name from its binary data.
-            if (!move_uploaded_file(
-                $_FILES['upfile']['tmp_name'],
-                sprintf(
-                    './uploads/%s.%s',
-                    sha1_file($_FILES['upfile']['tmp_name']),
-                    $ext
-                )
-            )) {
-                throw new \RuntimeException('Failed to move uploaded file.');
-            }
-
-            echo 'File is uploaded successfully.';
-        } catch (\RuntimeException $e) {
-
-            echo $e->getMessage();
+        // Undefined | Multiple Files | $_FILES Corruption Attack
+        if ( !isset($_FILES[$inputFieldName]['error']) || is_array($_FILES[$inputFieldName]['error'])) {
+            $errors[] = 'Invalid parameters.';
         }
+
+        switch ($_FILES[$inputFieldName]['error']) {
+            case UPLOAD_ERR_OK:
+                break;
+            case UPLOAD_ERR_NO_FILE:
+                $errors[] = 'No file sent.';
+            case UPLOAD_ERR_INI_SIZE:
+            case UPLOAD_ERR_FORM_SIZE:
+                $errors[] = 'Exceeded filesize limit of server.';
+            default:
+                $errors[] = 'Unknown errors.';
+        }
+
+        if ($_FILES[$inputFieldName]['size'] > 50 * $mb)
+            $errors[] = 'Exceeded filesize limit.';
+
+        $extension = strtolower(pathinfo($_FILES[$inputFieldName]['name'], PATHINFO_EXTENSION));
+        if ($isImage and !in_array($extension, ['jpg', 'jpeg', 'png', 'gif'])) {
+            $errors[] = 'Invalid file format.';
+        } else if (!$isImage and !in_array($extension, ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt'])) {
+            $errors[] = 'Invalid file format.';
+        }
+
+        // New file name
+        $fileName = $uploadDirectory . $newFileName . '.' . $extension;
+
+        // Check if file already exists
+        if (!$canOverwrite and file_exists($fileName))
+            $errors[] = "File already exists";
+
+        if (!empty($errors)) 
+            return $errors;
+
+        if (!move_uploaded_file($_FILES[$inputFieldName]['tmp_name'],$fileName)) {
+            $errors[] = "Error while uploading your file.";
+            return $errors;
+        }
+
+        return []; // empty array means no errors
     }
 
     /**

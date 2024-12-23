@@ -2,6 +2,14 @@
 
 namespace core;
 
+/**
+ * Class Session
+ * The $_SESSION superglobal wrapper
+ * For flash messages we have a special array in the session variable called 'flash_messages'
+ * This array has 4 keys:
+ * error, warning, info, success
+ * Each key has an array of messages
+ */
 class Session
 {
     private static array $flash_messages_to_remove = [];
@@ -21,17 +29,21 @@ class Session
         }
     }
 
-    public static function setFlash($key, $message)
+    public static function setFlashError($message)
     {
-        $_SESSION['flash_messages'][$key] = $message;
+        $_SESSION['flash_messages']['error'][] = $message;
     }
-
-    public static function getFlash($name)
+    public static function setFlashWarning($message)
     {
-        if(isset($_SESSION['flash_messages'][$name])) {
-            return $_SESSION['flash_messages'][$name];
-        }
-        return false;
+        $_SESSION['flash_messages']['warning'][] = $message;
+    }
+    public static function setFlashInfo($message)
+    {
+        $_SESSION['flash_messages']['info'][] = $message;
+    }
+    public static function setFlashSuccess($message)
+    {
+        $_SESSION['flash_messages']['success'][] = $message;
     }
 
     public static function getAllFlashMessages()

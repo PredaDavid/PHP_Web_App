@@ -1,5 +1,7 @@
 <?php 
 
+use models\sql\ItemType;
+
 const USE_LAYOUT = 'layouts/main.php'; //Marks the use of a layout
 
 ?>
@@ -13,6 +15,7 @@ const USE_LAYOUT = 'layouts/main.php'; //Marks the use of a layout
         
         <div class="container" style="grid-column: span 2;">
             <h2>Low inventory</h2>
+            <?php echo '<pre>', var_dump(scandir('images/uploads/items/')), '</pre>';  ?>
         </div>
         
         <div class="container" style="grid-column: span 3;">

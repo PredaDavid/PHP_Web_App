@@ -25,6 +25,7 @@ class ItemTypeController extends Controller
 
         if($request->isGet()) {
             $newItemTypeForm = new ItemTypeForm();
+            $newItemTypeForm->fieldsToIgnore = ['id', 'status'];
             $params = [
                 'newItemTypeForm' => $newItemTypeForm
             ];
@@ -32,19 +33,21 @@ class ItemTypeController extends Controller
         }
         else { // POST
             $newItemTypeForm = new ItemTypeForm();
+            $newItemTypeForm->fieldsToIgnore = ['id', 'status'];
             $newItemTypeForm->loadDataFromArray($request->getBody());
 
             if($newItemTypeForm->validate()){ 
 
-                $newItemType = new ItemType();
-                $newItemTypeForm->loadDataToSqlModel($newItemType);
+                $newItemTypeForm->createNewItemType();
 
-                Session::setFlash('success', 'You have successfully registered'); // Add a flash message
-                Response::redirect('/'); // Redirect to the home page
+                Session::setFlashSuccess('Item added'); // Add a flash message
+                Response::reload();
             }
             else { // If the data is not valid
-                // return parent::render('register', ['model' => $registerModel]);
-                die('Data is not valid');
+                $params = [
+                    'newItemTypeForm' => $newItemTypeForm
+                ];
+                return parent::render('item_types', ['newItemTypeForm' => $newItemTypeForm]);
             }
         }
     }

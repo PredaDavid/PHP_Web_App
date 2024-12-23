@@ -14,6 +14,7 @@ abstract class SqlModel
     public const INT_DEFAULT_VALUE = -1;
     public const STRING_DEFAULT_VALUE = 'unset';
     public const DATETIME_DEFAULT_VALUE = '0000-00-00 00:00:00';
+    public const FLOAT_DEFAULT_VALUE = 0;
 
     const TABLE_NAME = ""; // Table name in the database
     const EXTRA_ATTRIBUTES = []; // Extra attributes that are not in the table and should be ignored on CRUD operations
@@ -47,6 +48,9 @@ abstract class SqlModel
                             break;
                         case 'bool':
                             $this->{$propertyName} = false;
+                            break;
+                        case 'float':
+                            $this->{$propertyName} = self::FLOAT_DEFAULT_VALUE;
                             break;
                         default:
                             break;
@@ -265,5 +269,24 @@ abstract class SqlModel
         }
         $data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         return $data;
+    }
+
+    public static function getAutoIncrement()
+    {
+        if(Config::DB_TYPE === 'sqlite') {
+            $sql = "SELECT seq FROM sqlite_sequence WHERE name = :table";
+            $stmt = Application::current()->db->pdo->prepare($sql);
+            $stmt->execute([':table' => static::TABLE_NAME]);
+            $data = $stmt->fetch(\PDO::FETCH_ASSOC);
+            return $data['seq'];
+        }
+        else if (Config::DB_TYPE === 'mysql') {
+            $sql = "SHOW TABLE STATUS LIKE :table";
+            $stmt = Application::current()->db->pdo->prepare($sql);
+            $stmt->execute([':table' => static::TABLE_NAME]);
+            $data = $stmt->fetch(\PDO::FETCH_ASSOC);
+            return $data['Auto_increment'];
+        }
+        return false;
     }
 }

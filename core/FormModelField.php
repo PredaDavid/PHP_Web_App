@@ -20,7 +20,7 @@ class FormModelField
     public string $type;
     public string $label;
     public array $rules = []; // Validation rules
-
+    public array $options = []; // Trasform this filed in a data list
 
     public function __construct($name, $model, $type = self::TYPE_TEXT, $label = "", $rules = [])
     {
@@ -47,47 +47,43 @@ class FormModelField
             }
         }
 
-        if ($this->type === self::TYPE_CHECKBOX) { // Checkbox needs special handling
+        $label = $this->label;
+        $type = $this->type;
+        $name = $this->name;
+        
+        $value = "value='" . $this->value ."'" ;
+        if($this->type === self::TYPE_CHECKBOX)
             $value = $this->value ? 'checked' : '';
-            $text = sprintf(
-                '
-                <div class="form_field_container">
-                    <label>%s: </label>
-                    <input type="%s" name="%s" %s %s class="form-control%s">
-                    <div class="form_field_error">
-                        %s
-                    </div>
-                </div>
-            ',
-                $this->label,
-                $this->type,
-                $this->name,
-                $value,
-                $readonly,
-                $this->model->hasError($this->name) ? ' is-invalid' : '',
-                $this->model->getFirstError($this->name),
-            );
-        } else {
-            $text = sprintf(
-                '
-                <div class="form_field_container">
-                    <label>%s:</label>
-                    <br>
-                    <input type="%s" name="%s" value="%s" %s class="form-control%s">
-                    <div class="form_field_error">
-                        %s
-                    </div>
-                </div>
-            ',
-                $this->label,
-                $this->type,
-                $this->name,
-                $this->value,
-                $readonly,
-                $this->model->hasError($this->name) ? ' is-invalid' : '',
-                $this->model->getFirstError($this->name),
-            );
+
+        $br = "<br>";
+        if($this->type === self::TYPE_CHECKBOX)
+            $br = "";
+
+        $isInvalid = $this->model->hasError($this->name) ? ' is-invalid' : '';
+        $firstError = $this->model->getFirstError($this->name);
+
+        $list = "";
+        $has_list = "";
+        if(count($this->options)!==0){
+            $has_list = "list='".$name."_list'";
+            $list = "<datalist id='".$name."_list'>";
+            foreach($this->options as $option){
+                $list .= "<option value='$option'>";
+            }
+            $list .= "</datalist>";
         }
+
+        $text = "
+            <div class='form_field_container'>
+                <label>$label:</label>
+                $br
+                <input type='$type' name='$name' $value $readonly class='form-control$isInvalid' $has_list autocomplete='off'>
+                <div class='form_field_error'>
+                    $firstError
+                </div>
+                $list
+            </div>";
+
         return $text;
     }
 }

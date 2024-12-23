@@ -67,13 +67,14 @@ class UsersController extends Controller
                     $user_form->loadDataToSqlModel($user);
                     $user->save();
 
-                    Session::setFlash('success', 'User updated successfully');
+                    Session::setFlashSuccess('User updated successfully');
                     Response::redirect($request->getUrl());
                 }
                 else {
+                        
                     $params = [
                         'user_form' => $user_form,
-                        'change_password_form' => $change_password_form,
+                        'change_password_form' => null,
                     ];
                     return parent::render('user', $params);
                 }
@@ -83,7 +84,7 @@ class UsersController extends Controller
                 $change_password_form = new UserChangePasswordForm();
                 $change_password_form->loadDataFromArray($request->getBody());
                 if($change_password_form->validate() && $change_password_form->changePassword()) {
-                    Session::setFlash('success', 'Password changed successfully');
+                    Session::setFlashSuccess('Password changed successfully');
                     Response::redirect('/');
                 }
                 else {
@@ -103,7 +104,7 @@ class UsersController extends Controller
                 $user = new User();
                 $user->loadDataFromDb($request->getBody()['id']);
                 $user->delete();
-                Session::setFlash('success', 'User deleted successfully');
+                Session::setFlashSuccess('User deleted successfully');
                 Response::reload();
             }
             else if (in_array('Reset Password', $request->getBody())) {
@@ -112,7 +113,7 @@ class UsersController extends Controller
                 $user->loadDataFromDb($request->getBody()['id']);
                 $user->password = password_hash($user->phone_number, PASSWORD_DEFAULT);
                 $user->save();
-                Session::setFlash('success', 'Password reset successfully');
+                Session::setFlashSuccess('Password reset successfully');
                 Response::reload();
             }
             else if (in_array('Reactivate User', $request->getBody())) {
@@ -121,7 +122,7 @@ class UsersController extends Controller
                 $user->loadDataFromDb($request->getBody()['id']);
                 $user->status = 1;
                 $user->save();
-                Session::setFlash('success', 'User reactivated successfully');
+                Session::setFlashSuccess('User reactivated successfully');
                 Response::reload();
             }
         }

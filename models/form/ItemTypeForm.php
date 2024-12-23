@@ -4,11 +4,13 @@ namespace models\form;
 
 use core\FormModel;
 use core\Application;
+use core\Controller;
 use core\FormModelField;
+use core\Request;
+use core\Session;
 use core\SqlModel;
 
-use models\sql\User;
-use models\sql\Worker;
+use models\sql\ItemType;
 
 class ItemTypeForm extends FormModel
 {
@@ -23,6 +25,7 @@ class ItemTypeForm extends FormModel
     public FormModelField $rental_price;
     public FormModelField $replacement_price;
     public FormModelField $image;
+    public FormModelField $image_name;
     public FormModelField $need_cleaning_after_use;
     public FormModelField $one_time_use;
     public FormModelField $status;
@@ -41,35 +44,35 @@ class ItemTypeForm extends FormModel
             model: $this,
             type: FormModelField::TYPE_TEXT,
             label: 'Original Barcode',
-            rules: [self::RULE_REQUIRED]
+            rules: [self::RULE_REQUIRED, [self::RULE_MAX, 'max' => 50]]
         );
         $this->name = new FormModelField(
             name: "name",
             model: $this,
             type: FormModelField::TYPE_TEXT,
             label: 'Name',
-            rules: [self::RULE_REQUIRED]
+            rules: [self::RULE_REQUIRED, [self::RULE_MAX, 'max' => 100]]
         );
         $this->description = new FormModelField(
             name: "description",
             model: $this,
             type: FormModelField::TYPE_TEXT,
             label: 'Description',
-            rules: [self::RULE_REQUIRED]
+            rules: [self::RULE_REQUIRED, [self::RULE_MAX, 'max' => 500]]
         );
         $this->rental_price = new FormModelField(
             name: "rental_price",
             model: $this,
             type: FormModelField::TYPE_NUMBER,
             label: 'Rental Price',
-            rules: [self::RULE_REQUIRED]
+            rules: [self::RULE_REQUIRED, [self::RULE_MIN, 'min' => 0]]
         );
         $this->replacement_price = new FormModelField(
             name: "replacement_price",
             model: $this,
             type: FormModelField::TYPE_NUMBER,
             label: 'Replacement Price',
-            rules: [self::RULE_REQUIRED]
+            rules: [self::RULE_REQUIRED, [self::RULE_MIN, 'min' => 0]]
         );
         $this->image = new FormModelField(
             name: "image",
@@ -77,6 +80,12 @@ class ItemTypeForm extends FormModel
             type: FormModelField::TYPE_FILE,
             label: 'Image',
             rules: []
+        );
+        $this->image_name = new FormModelField(
+            name: "image_name",
+            model: $this,
+            type: FormModelField::TYPE_TEXT,
+            label: 'Image Name',
         );
         $this->need_cleaning_after_use = new FormModelField(
             name: "need_cleaning_after_use",
@@ -99,5 +108,48 @@ class ItemTypeForm extends FormModel
             label: 'Status',
             rules: [self::RULE_READONLY]
         );
+
+        $this->image_name->options = array_diff(scandir(self::FILES_UPLOAD_PATH), ['.', '..']);  
+    }
+
+    public function createNewItemType() 
+    {
+        $newItemType = new ItemType();
+
+        $this->image->value = '';
+        if(Request::wasFileSent('image')) { // If an image was sent
+            $filename = $this->image_name->value; // Get the filename from the input field
+            if(empty($filename)) { // If the filename is empty
+                $filename = ItemType::getAutoIncrement() . '_' . $this->name->value; // Generate a filename
+            }
+
+            $errors = Request::saveFile('image', self::FILES_UPLOAD_PATH, $filename);
+            $filename .= '.' . Request::getSendedFileExtension('image');
+
+            if(!empty($errors)) { // If there are errors
+                foreach($errors as $error) {
+                    Session::setFlashError($error);
+                }
+                Session::setFlashInfo('Image was not saved.');
+            }
+            else {
+                Session::setFlashInfo('Image was saved.');
+                $this->image->value = $filename;
+            }
+        }
+        else {
+            if(in_array($this->image_name->value, $this->image_name->options)) {
+                $this->image->value = $this->image_name->value;
+            }
+            else {
+                $this->image->value = '';
+                Session::setFlashWarning('Image was not found.');
+            }
+        }
+
+        $this->loadDataToSqlModel($newItemType, ['id', 'status']);
+        $newItemType->status = 1;
+        $newItemType->save();
+
     }
 }

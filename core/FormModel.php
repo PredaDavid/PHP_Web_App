@@ -6,8 +6,8 @@ abstract class FormModel
 {
     public const RULE_REQUIRED = '[RULE_REQUIRED] This field is required.'; // Filed is required
     public const RULE_EMAIL = '[RULE_EMAIL] This field must be valid email address.'; // Field must be a valid email address
-    public const RULE_MIN = '[RULE_MIN] Min length of this field must be {min}.'; // Min length of the field
-    public const RULE_MAX = '[RULE_MAX] Max length of this field must be {max}.'; // Max length of the field
+    public const RULE_MIN = '[RULE_MIN] Min length of this field must be {min}.'; // Min length of the field if it is a string | Min value if it is a number
+    public const RULE_MAX = '[RULE_MAX] Max length of this field must be {max}.'; // Max length of the field if it is a string | Max value if it is a number
     public const RULE_MATCH = '[RULE_MATCH] This field must be the same as {match}.'; // Field must be the same as another field
     public const RULE_UNIQUE = '[RULE_UNIQUE] Record with this {field} already exists.'; // Field must be unique in the database
     public const RULE_READONLY = '[RULE_READONLY] This field is read only.'; // Field is read only
@@ -72,7 +72,10 @@ abstract class FormModel
                 $model->{$name} = $field->value ? 1 : 0;
             } else if ($field->type === FormModelField::TYPE_PASSWORD) {
                 $model->{$name} = password_hash($field->value, PASSWORD_DEFAULT);
-            } else {
+            } else if ($field->type === FormModelField::TYPE_NUMBER) {
+                $model->{$name} = (float)$field->value;
+            }
+            else {
                 $model->{$name} = $field->value;
             }
         }
@@ -86,35 +89,43 @@ abstract class FormModel
     {
         $attributes = get_object_vars($this);
         foreach ($attributes as $name => $attributeValue) {
-            if ($attributeValue instanceof FormModelField) {
-                $value = $attributeValue->value;
-                $rules = $attributeValue->rules;
-                foreach ($rules as $rule) {
-                    $ruleName = $rule;
-                    if (!is_string($ruleName)) {
-                        $ruleName = $rule[0];
-                    }
+            if (!$attributeValue instanceof FormModelField)
+                continue;
 
-                    if ($ruleName === self::RULE_REQUIRED && !$value) {
-                        $this->addError($name, self::RULE_REQUIRED);
-                    }
+            $value = $attributeValue->value;
+            $rules = $attributeValue->rules;
+            $type = $attributeValue->type;
 
-                    if ($ruleName === self::RULE_EMAIL && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
-                        $this->addError($name, self::RULE_EMAIL);
-                    }
-
-                    if ($ruleName === self::RULE_MIN && strlen($value) < $rule['min']) {
-                        $this->addError($name, self::RULE_MIN, $rule);
-                    }
-
-                    if ($ruleName === self::RULE_MAX && strlen($value) > $rule['max']) {
-                        $this->addError($name, self::RULE_MAX, $rule);
-                    }
-
-                    if ($ruleName === self::RULE_MATCH && $value !== $this->{$rule['match']}->value) {
-                        $this->addError($name, self::RULE_MATCH, $rule);
-                    }
-                    if ($ruleName === self::RULE_UNIQUE) {
+            foreach ($rules as $rule) {
+                $ruleName = $rule;
+                if (!is_string($ruleName)) 
+                    $ruleName = $rule[0];
+                switch ($ruleName) {
+                    case self::RULE_REQUIRED:
+                        if (!$value) 
+                            $this->addError($name, self::RULE_REQUIRED);
+                        break;
+                    case self::RULE_EMAIL:
+                        if (!filter_var($value, FILTER_VALIDATE_EMAIL)) 
+                            $this->addError($name, self::RULE_EMAIL);
+                        break;
+                    case self::RULE_MIN:
+                        if ($type === FormModelField::TYPE_NUMBER && $value < $rule['min'])
+                            $this->addError($name, self::RULE_MIN, $rule);
+                        else if (strlen($value) < $rule['min'])
+                            $this->addError($name, self::RULE_MIN, $rule);
+                        break;
+                    case self::RULE_MAX:
+                        if ($type === FormModelField::TYPE_NUMBER && $value > $rule['max'])
+                            $this->addError($name, self::RULE_MAX, $rule);
+                        else if (strlen($value) > $rule['max'])
+                            $this->addError($name, self::RULE_MAX, $rule);
+                        break;
+                    case self::RULE_MATCH:
+                        if ($value !== $this->{$rule['match']}->value)
+                            $this->addError($name, self::RULE_MATCH, $rule);
+                        break;
+                    case self::RULE_UNIQUE:
                         $uniqueAttr = $rule['column'];
                         $tableName = $rule['table'];
                         $statement = Application::current()->db->pdo->prepare("SELECT * FROM $tableName WHERE $uniqueAttr = :attr");
@@ -123,7 +134,7 @@ abstract class FormModel
                         if ($record) {
                             $this->addError($name, self::RULE_UNIQUE, ['field' => $name]);
                         }
-                    }
+                        break;
                 }
             }
         }

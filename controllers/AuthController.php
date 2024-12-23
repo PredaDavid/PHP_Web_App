@@ -35,7 +35,7 @@ class AuthController extends Controller
                 $user_id = $loginModel->login(); // Try to login
                 if($user_id){ // If login was successful
                     Session::set('user_id', $user_id); // Set the user id in the session
-                    Session::setFlash('success', 'You have successfully login'); // Add a flash message
+                    Session::setFlashSuccess('You have successfully login'); // Add a flash message
                     Response::redirect('/');
                     return;
                 }
@@ -66,7 +66,7 @@ class AuthController extends Controller
                 $user = User::getByWhere(' email = ?', [$registerModel->email->value])[0];
                 Session::set('user_id', $user->id); // Set the user id in the session
 
-                Session::setFlash('success', 'You have successfully registered'); // Add a flash message
+                Session::setFlashSuccess('You have successfully registered'); // Add a flash message
                 Response::redirect('/'); // Redirect to the home page
             }
             else { // If the data is not valid
@@ -82,7 +82,7 @@ class AuthController extends Controller
     {
         if(isset(Application::current()->user)){ // If the user is logged in
             Session::remove('user_id'); // Remove the user id from the session 
-            Session::setFlash('success', 'You logout'); // Add a flash message
+            Session::setFlashSuccess('You logout'); // Add a flash message
         }
         Response::redirect('/'); // Redirect to the home page
     }
